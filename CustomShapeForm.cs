@@ -28,6 +28,7 @@ namespace Matric_scope
         private Point2f centroid;
         private float baseAngle;
         private Size2f refBoxSize;
+        private OpenCvSharp.Point[] detectedContour;
 
         private Point2f? wPt1 = null, wPt2 = null;
         private Point2f? lPt1 = null, lPt2 = null;
@@ -178,11 +179,15 @@ namespace Matric_scope
             this.Controls.Add(pictureBox);
 
             btnSetWidth.Click += (s, e) => {
+                wPt1 = null;
+                wPt2 = null;
                 currentState = ClickState.Width;
                 lblStatus.Text = "Click 2 points for WIDTH on the image.";
                 pictureBox.Cursor = precisionCursor;
             };
             btnSetLength.Click += (s, e) => {
+                lPt1 = null;
+                lPt2 = null;
                 currentState = ClickState.Length;
                 lblStatus.Text = "Click 2 points for LENGTH on the image.";
                 pictureBox.Cursor = precisionCursor;
@@ -194,40 +199,20 @@ namespace Matric_scope
 
         private void DetectBaseOrientation()
         {
-            using (Mat gray = new Mat())
-            using (Mat edges = new Mat())
+            double detectedAngle;
+            float span1, span2;
+            if (CustomShapeEngine.TryDetectGeometry(sourceFrame, bgFrame, 100, out detectedContour,
+                out centroid, out detectedAngle, out span1, out span2))
             {
-                Cv2.CvtColor(sourceFrame, gray, ColorConversionCodes.BGR2GRAY);
-                Cv2.MedianBlur(gray, gray, 5);
-                Cv2.Canny(gray, edges, 40, 120);
-
-                using (Mat element = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(9, 9)))
-                {
-                    Cv2.MorphologyEx(edges, edges, MorphTypes.Close, element);
-                }
-
-                Cv2.FindContours(edges, out OpenCvSharp.Point[][] contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-
-                var largest = contours?.Where(c => Cv2.ContourArea(c) > 1200)
-                                     .OrderByDescending(c => Cv2.ContourArea(c))
-                                     .FirstOrDefault();
-
-                if (largest != null)
-                {
-                    var hull = Cv2.ConvexHull(largest);
-                    RotatedRect box = Cv2.MinAreaRect(hull);
-                    centroid = box.Center;
-                    baseAngle = box.Angle;
-                    refBoxSize = box.Size;
-                }
-                else
-                {
-                    MessageBox.Show("Vision Error: Stone contour not detected.", "Vision Warning");
-                    centroid = new Point2f(sourceFrame.Width / 2f, sourceFrame.Height / 2f);
-                    baseAngle = 0f;
-                    refBoxSize = new Size2f(100, 100);
-                }
+                baseAngle = (float)detectedAngle;
+                refBoxSize = new Size2f(span1, span2);
+                return;
             }
+
+            MessageBox.Show("Vision Error: Stone contour not detected. Remove objects touching the image border and try again.", "Vision Warning");
+            centroid = new Point2f(sourceFrame.Width / 2f, sourceFrame.Height / 2f);
+            baseAngle = 0f;
+            refBoxSize = new Size2f(100, 100);
         }
 
         private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
@@ -266,6 +251,13 @@ namespace Matric_scope
                 Point2f imgPt = MapScreenToImageCoordinates(e.Location);
                 if (imgPt.X >= 0 && imgPt.X < sourceFrame.Width && imgPt.Y >= 0 && imgPt.Y < sourceFrame.Height)
                 {
+                    if (detectedContour == null || Cv2.PointPolygonTest(detectedContour, imgPt, false) < 0)
+                    {
+                        lblStatus.Text = "Point is outside the detected shape. Click on or inside its outline.";
+                        return;
+                    }
+                    if (chkSnapToEdge.Checked)
+                        imgPt = CustomShapeEngine.NearestPointOnContour(imgPt, detectedContour);
                     if (currentState == ClickState.Width)
                     {
                         if (wPt1 == null) wPt1 = imgPt;
@@ -409,31 +401,12 @@ namespace Matric_scope
             double refAngle;
             float span1, span2;
 
-            using (Mat gray = new Mat())
-            using (Mat edges = new Mat())
+            OpenCvSharp.Point[] contour;
+            if (!CustomShapeEngine.TryDetectGeometry(sourceFrame, bgFrame, 100, out contour,
+                out refCenter, out refAngle, out span1, out span2))
             {
-                Cv2.CvtColor(sourceFrame, gray, ColorConversionCodes.BGR2GRAY);
-                Cv2.MedianBlur(gray, gray, 5);
-                Cv2.Canny(gray, edges, 40, 120);
-
-                using (Mat element = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(9, 9)))
-                {
-                    Cv2.MorphologyEx(edges, edges, MorphTypes.Close, element);
-                }
-
-                Cv2.FindContours(edges, out OpenCvSharp.Point[][] contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-                var largest = contours?.Where(c => Cv2.ContourArea(c) > 1200).OrderByDescending(c => Cv2.ContourArea(c)).FirstOrDefault();
-
-                if (largest == null)
-                {
-                    MessageBox.Show("Error detecting stone outline for training.");
-                    return;
-                }
-
-                var hull = Cv2.ConvexHull(largest);
-
-                // Extact Bi-Axial independent dimensions based on the new Spatial Mathematics
-                CustomShapeEngine.GetInvariantTransform(hull, out refCenter, out refAngle, out span1, out span2);
+                MessageBox.Show("Error detecting the shape outline for training.");
+                return;
             }
 
             string recordsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CustomShapes");
@@ -456,7 +429,7 @@ namespace Matric_scope
                 LengthPt1 = normL1,
                 LengthPt2 = normL2,
                 RefAngle = 0f,
-                ContourData = "",
+                ContourData = CustomShapeEngine.SerializeContour(contour, refCenter, refAngle, span1, span2),
                 SnapToEdge = chkSnapToEdge.Checked
             };
 
