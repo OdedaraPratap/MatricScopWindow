@@ -1,0 +1,32 @@
+F:\Matric Scope\Matric Scope\bin\Debug\dll\x64\OpenCvSharpExtern.dll
+F:\Matric Scope\Matric Scope\bin\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+F:\Matric Scope\Matric Scope\bin\Debug\Matric Scope.exe.config
+F:\Matric Scope\Matric Scope\bin\Debug\Matric Scope.exe
+F:\Matric Scope\Matric Scope\bin\Debug\Matric Scope.pdb
+F:\Matric Scope\Matric Scope\bin\Debug\MvCameraControl.Net.dll
+F:\Matric Scope\Matric Scope\bin\Debug\System.Buffers.dll
+F:\Matric Scope\Matric Scope\bin\Debug\System.Drawing.Common.dll
+F:\Matric Scope\Matric Scope\bin\Debug\System.Memory.dll
+F:\Matric Scope\Matric Scope\bin\Debug\System.Numerics.Vectors.dll
+F:\Matric Scope\Matric Scope\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+F:\Matric Scope\Matric Scope\bin\Debug\uEyeDotNet.dll
+F:\Matric Scope\Matric Scope\bin\Debug\OpenCvSharp.xml
+F:\Matric Scope\Matric Scope\bin\Debug\OpenCvSharp.Extensions.xml
+F:\Matric Scope\Matric Scope\bin\Debug\System.Buffers.xml
+F:\Matric Scope\Matric Scope\bin\Debug\System.Drawing.Common.pdb
+F:\Matric Scope\Matric Scope\bin\Debug\System.Drawing.Common.xml
+F:\Matric Scope\Matric Scope\bin\Debug\System.Memory.xml
+F:\Matric Scope\Matric Scope\bin\Debug\System.Numerics.Vectors.xml
+F:\Matric Scope\Matric Scope\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.csproj.AssemblyReference.cache
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.exe.config
+F:\Matric Scope\Matric Scope\obj\Debug\opencvsharp.FrmAuto.resources
+F:\Matric Scope\Matric Scope\obj\Debug\opencvsharp.Form1.resources
+F:\Matric Scope\Matric Scope\obj\Debug\opencvsharp.FrmCalib.resources
+F:\Matric Scope\Matric Scope\obj\Debug\opencvsharp.frmSettings.resources
+F:\Matric Scope\Matric Scope\obj\Debug\opencvsharp.Properties.Resources.resources
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.csproj.GenerateResource.cache
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.csproj.CoreCompileInputs.cache
+F:\Matric Scope\Matric Scope\obj\Debug\Matric S.749E2BFF.Up2Date
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.exe
+F:\Matric Scope\Matric Scope\obj\Debug\Matric Scope.pdb

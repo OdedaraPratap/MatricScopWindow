@@ -1,0 +1,66 @@
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\dll\x64\OpenCvSharpExtern.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\Matric Scope.exe.config
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\Matric Scope.exe
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\Matric Scope.pdb
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\MvCameraControl.Net.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\OpenCvSharp.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\OpenCvSharp.Extensions.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Buffers.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Drawing.Common.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Memory.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Numerics.Vectors.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\uEyeDotNet.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\OpenCvSharp.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\OpenCvSharp.Extensions.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Buffers.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Drawing.Common.pdb
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Drawing.Common.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Memory.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Numerics.Vectors.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.csproj.AssemblyReference.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.exe.config
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\opencvsharp.FrmAuto.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\opencvsharp.Form1.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\opencvsharp.FrmCalib.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\opencvsharp.frmSettings.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\opencvsharp.Properties.Resources.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.csproj.GenerateResource.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric S.749E2BFF.Up2Date
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.exe
+C:\Users\Administrator\source\repos\opencvsharp\obj\x64\Debug\Matric Scope.pdb
+F:\Matric Scope\Matric Scope\bin\x64\Debug\dll\x64\OpenCvSharpExtern.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Matric Scope.exe.config
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Matric Scope.exe
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Matric Scope.pdb
+F:\Matric Scope\Matric Scope\bin\x64\Debug\MvCameraControl.Net.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Buffers.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Memory.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Numerics.Vectors.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\uEyeDotNet.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\OpenCvSharp.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\OpenCvSharp.Extensions.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Buffers.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.pdb
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Memory.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Numerics.Vectors.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.csproj.AssemblyReference.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.exe.config
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.FrmAuto.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.Form1.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.FrmCalib.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.frmSettings.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.Properties.Resources.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.csproj.GenerateResource.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.csproj.CoreCompileInputs.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric S.749E2BFF.Up2Date
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.exe
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Matric Scope.pdb

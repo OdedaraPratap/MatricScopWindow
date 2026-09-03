@@ -1,0 +1,91 @@
+F:\Matric Scope\Matric Scope\bin\x64\Debug\dll\x64\OpenCvSharpExtern.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Metric Scope.exe.config
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Metric Scope.exe
+F:\Matric Scope\Matric Scope\bin\x64\Debug\Metric Scope.pdb
+F:\Matric Scope\Matric Scope\bin\x64\Debug\MvCameraControl.Net.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Buffers.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Memory.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Numerics.Vectors.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\uEyeDotNet.dll
+F:\Matric Scope\Matric Scope\bin\x64\Debug\OpenCvSharp.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\OpenCvSharp.Extensions.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Buffers.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.pdb
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Drawing.Common.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Memory.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Numerics.Vectors.xml
+F:\Matric Scope\Matric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.csproj.AssemblyReference.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.FrmAuto.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.Form1.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.FrmCalib.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.frmSettings.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.Properties.Resources.resources
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.csproj.GenerateResource.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.csproj.CoreCompileInputs.cache
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric S.2BDA2BBB.Up2Date
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.exe
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.pdb
+F:\Matric Scope\Matric Scope\obj\x64\Debug\Metric Scope.exe.config
+F:\Matric Scope\Matric Scope\obj\x64\Debug\opencvsharp.Camera_Setting1.resources
+F:\Matric Scope\Metric Scope\bin\x64\Debug\dll\x64\OpenCvSharpExtern.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\libSkiaSharp.dylib
+F:\Matric Scope\Metric Scope\bin\x64\Debug\x86\libSkiaSharp.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\x64\libSkiaSharp.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\arm64\libSkiaSharp.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\Metric Scope.exe.config
+F:\Matric Scope\Metric Scope\bin\x64\Debug\Metric Scope.exe
+F:\Matric Scope\Metric Scope\bin\x64\Debug\Metric Scope.pdb
+F:\Matric Scope\Metric Scope\bin\x64\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\MvCameraControl.Net.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\SkiaSharp.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\SQLitePCLRaw.batteries_v2.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\SQLitePCLRaw.provider.dynamic_cdecl.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\SQLitePCLRaw.provider.e_sqlite3.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Buffers.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Data.SQLite.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Drawing.Common.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.IO.Pipelines.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Memory.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Numerics.Vectors.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Text.Encodings.Web.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Text.Json.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Threading.Tasks.Extensions.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\uEyeDotNet.dll
+F:\Matric Scope\Metric Scope\bin\x64\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\SkiaSharp.pdb
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Buffers.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Data.SQLite.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Drawing.Common.pdb
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Drawing.Common.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.IO.Pipelines.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Memory.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Numerics.Vectors.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Text.Encodings.Web.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Text.Json.xml
+F:\Matric Scope\Metric Scope\bin\x64\Debug\System.Threading.Tasks.Extensions.xml
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.csproj.AssemblyReference.cache
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.csproj.SuggestedBindingRedirects.cache
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.exe.config
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.Camera_Setting1.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.ChangePasswordForm.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.CustomShapeForm.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.FrmAuto.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.Form1.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.frmHistory.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.Frmset.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.FrmCalib.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.frmPrint.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.frmSettings.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Matric_scope.Properties.Resources.resources
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.csproj.GenerateResource.cache
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.csproj.CoreCompileInputs.cache
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric S.2BDA2BBB.Up2Date
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.exe
+F:\Matric Scope\Metric Scope\obj\x64\Debug\Metric Scope.pdb

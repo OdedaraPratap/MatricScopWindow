@@ -1,0 +1,32 @@
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\dll\x64\OpenCvSharpExtern.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\Matric Scope.exe.config
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\Matric Scope.exe
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\Matric Scope.pdb
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\MvCameraControl.Net.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\OpenCvSharp.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\OpenCvSharp.Extensions.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Buffers.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Drawing.Common.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Memory.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Numerics.Vectors.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\uEyeDotNet.dll
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\OpenCvSharp.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\OpenCvSharp.Extensions.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Buffers.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Drawing.Common.pdb
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Drawing.Common.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Memory.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Numerics.Vectors.xml
+C:\Users\Administrator\source\repos\opencvsharp\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.csproj.AssemblyReference.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.FrmAuto.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.Form1.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.frmSettings.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.Properties.Resources.resources
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.csproj.GenerateResource.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsharp.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\opencvsh.2E1D9D56.Up2Date
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\Matric Scope.exe
+C:\Users\Administrator\source\repos\opencvsharp\obj\Debug\Matric Scope.pdb
