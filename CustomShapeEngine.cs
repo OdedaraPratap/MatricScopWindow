@@ -15,6 +15,9 @@ namespace Matric_scope
     public class CustomShapeEngine
     {
         public double PixelToMmRatio { get; set; } = 1.0;
+        private int cachedShapeId = int.MinValue;
+        private string cachedContourData;
+        private Point2f[] cachedTemplateContour = new Point2f[0];
 
         public string MeasureCustomShape(Mat frame, ShapeData activeShape, Mat backgroundGray = null, int thresholdValue = 100)
         {
@@ -37,7 +40,7 @@ namespace Matric_scope
             if (!TryDetectGeometry(frame, backgroundGray, thresholdValue, out contour, out center, out angle, out span1, out span2))
                 return "Object not present";
 
-            Point2f[] templateContour = DeserializeContour(activeShape.ContourData);
+            Point2f[] templateContour = GetTemplateContour(activeShape);
             int transform = templateContour.Length >= 8
                 ? FindBestTransform(templateContour, NormalizeContour(contour, center, angle, span1, span2))
                 : 0; // Backward compatibility for shapes saved by older versions.
@@ -52,14 +55,23 @@ namespace Matric_scope
 
             // Masking the strokes to the real (non-convex) contour guarantees that
             // an annotation can never be painted beyond the detected object.
-            DrawClippedLine(frame, contour, w1, w2, Scalar.Red);
-            DrawClippedLine(frame, contour, l1, l2, Scalar.Blue);
+            DrawClippedLines(frame, contour, w1, w2, l1, l2);
             Cv2.Circle(frame, (OpenCvSharp.Point)center, 4, Scalar.Green, -1);
             PutMeasurement(frame, w1, w2, width, Scalar.Red, -10);
             PutMeasurement(frame, l1, l2, length, Scalar.Blue, 20);
 
-            frame.ImWrite("CUSTOMS.png");
             return string.Format(CultureInfo.InvariantCulture, "Length: {0:F2} \nWidth: {1:F2}", length, width);
+        }
+
+        private Point2f[] GetTemplateContour(ShapeData shape)
+        {
+            if (cachedShapeId != shape.Id || !string.Equals(cachedContourData, shape.ContourData, StringComparison.Ordinal))
+            {
+                cachedTemplateContour = DeserializeContour(shape.ContourData);
+                cachedShapeId = shape.Id;
+                cachedContourData = shape.ContourData;
+            }
+            return cachedTemplateContour;
         }
 
         private static Point2f MapAndSnap(Point2f point, int transform, Point2f center, double angle,
@@ -220,7 +232,17 @@ namespace Matric_scope
 
         private static Point2f[] NormalizeContour(OpenCvSharp.Point[] contour, Point2f center, double angle, float span1, float span2)
         {
-            return contour.Select(p => ProjectToLocal(new Point2f(p.X, p.Y), center, angle, span1, span2)).ToArray();
+            // ApproxNone contours can contain thousands of adjacent pixels. A
+            // uniform 512-point sample preserves the outline while bounding the
+            // template matching cost on every measurement.
+            int count = Math.Min(512, contour.Length);
+            Point2f[] normalized = new Point2f[count];
+            for (int i = 0; i < count; i++)
+            {
+                OpenCvSharp.Point p = contour[i * contour.Length / count];
+                normalized[i] = ProjectToLocal(new Point2f(p.X, p.Y), center, angle, span1, span2);
+            }
+            return normalized;
         }
 
         private static int FindBestTransform(Point2f[] template, Point2f[] live)
@@ -276,15 +298,18 @@ namespace Matric_scope
             return best;
         }
 
-        private static void DrawClippedLine(Mat frame, OpenCvSharp.Point[] contour, Point2f a, Point2f b, Scalar color)
+        private static void DrawClippedLines(Mat frame, OpenCvSharp.Point[] contour,
+            Point2f w1, Point2f w2, Point2f l1, Point2f l2)
         {
             using (Mat overlay = frame.Clone())
             using (Mat mask = Mat.Zeros(frame.Size(), MatType.CV_8UC1))
             using (Mat lineMask = Mat.Zeros(frame.Size(), MatType.CV_8UC1))
             using (Mat combined = new Mat())
             {
-                Cv2.Line(overlay, (OpenCvSharp.Point)a, (OpenCvSharp.Point)b, color, 2, LineTypes.AntiAlias);
-                Cv2.Line(lineMask, (OpenCvSharp.Point)a, (OpenCvSharp.Point)b, Scalar.White, 2, LineTypes.AntiAlias);
+                Cv2.Line(overlay, (OpenCvSharp.Point)w1, (OpenCvSharp.Point)w2, Scalar.Red, 2, LineTypes.AntiAlias);
+                Cv2.Line(overlay, (OpenCvSharp.Point)l1, (OpenCvSharp.Point)l2, Scalar.Blue, 2, LineTypes.AntiAlias);
+                Cv2.Line(lineMask, (OpenCvSharp.Point)w1, (OpenCvSharp.Point)w2, Scalar.White, 2, LineTypes.AntiAlias);
+                Cv2.Line(lineMask, (OpenCvSharp.Point)l1, (OpenCvSharp.Point)l2, Scalar.White, 2, LineTypes.AntiAlias);
                 Cv2.FillPoly(mask, new[] { contour }, Scalar.White);
                 Cv2.BitwiseAnd(mask, lineMask, combined);
                 overlay.CopyTo(frame, combined);

@@ -57,6 +57,11 @@ namespace Matric_scope
         private const int FRAMES_TO_STABILIZE = 8; 
         private const double MOVEMENT_THRESHOLD = 9.0; 
         private Stopwatch stopWatch = System.Diagnostics.Stopwatch.StartNew();
+        // Camera callbacks can arrive faster than OpenCV can process them. These
+        // gates keep one analysis and one UI render queued instead of growing an
+        // unbounded Task/BeginInvoke backlog.
+        private int frameAnalysisInProgress;
+        private int frameRenderPending;
         public static bool calibclick = false;
         private Mat liveMat = new Mat(), lastProcessedFrame = new Mat(), motionAnalysisMat = new Mat(), backgroundGray = null, stableDisplayMat = new Mat();
         private static string xmlFilePath = Path.Combine(Application.StartupPath, "DiamondRules.xml");
@@ -687,7 +692,8 @@ namespace Matric_scope
                 // ==========================================================
                 // HIGH-SPEED ALGORITHM PROCESSING ENGINE (Conditional)
                 // ==========================================================
-                if (backgroundGray != null && currentMode != MeasurementMode.None)
+                if (backgroundGray != null && currentMode != MeasurementMode.None
+                    && Interlocked.CompareExchange(ref frameAnalysisInProgress, 1, 0) == 0)
                 {
                     Mat processingCopy = new Mat();
                     lock (frameLock)
@@ -791,10 +797,19 @@ namespace Matric_scope
                                 }
                             }
                             catch (Exception) { }
+                            finally
+                            {
+                                Interlocked.Exchange(ref frameAnalysisInProgress, 0);
+                            }
                         });
                     }
+                    else
+                    {
+                        processingCopy.Dispose();
+                        Interlocked.Exchange(ref frameAnalysisInProgress, 0);
+                    }
                 }
-                else
+                else if (backgroundGray == null || currentMode == MeasurementMode.None)
                 {
                     // If mode is None or stopped, ensure snapshot rendering mode drops back to live feed
                     isRenderingSnapshot = false;
@@ -803,6 +818,21 @@ namespace Matric_scope
                 // ==========================================================
                 // UNIFIED DISPLAY RENDERING PIPELINE (Runs Always!)
                 // ==========================================================
+                QueueFrameRender();
+            }
+            catch (Exception)
+            {
+                bmp?.Dispose();
+            }
+        }
+
+        private void QueueFrameRender()
+        {
+            if (IsDisposed || !IsHandleCreated || Interlocked.CompareExchange(ref frameRenderPending, 1, 0) != 0)
+                return;
+
+            try
+            {
                 this.BeginInvoke((MethodInvoker)delegate
                 {
                     try
@@ -826,9 +856,13 @@ namespace Matric_scope
                         }
                     }
                     catch (Exception) { }
+                    finally { Interlocked.Exchange(ref frameRenderPending, 0); }
                 });
             }
-            catch (Exception) { }
+            catch
+            {
+                Interlocked.Exchange(ref frameRenderPending, 0);
+            }
         }
 
         private void ResetSnapshotState()
