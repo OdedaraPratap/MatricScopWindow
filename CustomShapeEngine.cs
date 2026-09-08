@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using OpenCvSharp;
 
@@ -104,6 +105,8 @@ namespace Matric_scope
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
                 GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                MatchSavedOrientation(liveHull, activeShape.ContourData, liveCenter,
+                    ref liveAngle, out liveSpan1, out liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -188,11 +191,18 @@ namespace Matric_scope
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
         {
+            if (hull == null || hull.Length < 3)
+                throw new ArgumentException("A contour with at least three points is required.", nameof(hull));
+
             Moments mu = Cv2.Moments(hull);
+            if (Math.Abs(mu.M00) < double.Epsilon)
+                throw new ArgumentException("The contour must have a non-zero area.", nameof(hull));
+
             centroid = new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
 
             double theta = 0.0;
-            if (Math.Abs(mu.Mu20 - mu.Mu02) < 1e-2 && Math.Abs(mu.Mu11) < 1e-2)
+            double nuDiff = mu.Nu20 - mu.Nu02;
+            if (Math.Abs(nuDiff) < 1e-3 && Math.Abs(mu.Nu11) < 1e-3)
             {
                 double maxR = 0;
                 foreach (var pt in hull)
@@ -203,7 +213,7 @@ namespace Matric_scope
             }
             else
             {
-                theta = 0.5 * Math.Atan2(2 * mu.Mu11, mu.Mu20 - mu.Mu02);
+                theta = 0.5 * Math.Atan2(2 * mu.Nu11, nuDiff);
             }
 
             double dx = Math.Cos(theta), dy = Math.Sin(theta);
@@ -260,6 +270,126 @@ namespace Matric_scope
                 double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
                 if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
                 if (p2 > maxP2) maxP2 = p2; if (p2 < minP2) minP2 = p2;
+            }
+
+            span1 = (float)(maxP1 - minP1);
+            span2 = (float)(maxP2 - minP2);
+        }
+
+        public static string CreateOrientationSignature(OpenCvSharp.Point[] contour, Point2f centroid, double angle)
+        {
+            double[] signature = CreateRadialSignature(contour, centroid, angle, 360);
+            return "RADIAL360|" + string.Join(",", signature.Select(value =>
+                value.ToString("R", CultureInfo.InvariantCulture)));
+        }
+
+        private static void MatchSavedOrientation(OpenCvSharp.Point[] contour, string contourData,
+            Point2f centroid, ref double angle, out float span1, out float span2)
+        {
+            double[] reference = ParseOrientationSignature(contourData);
+            if (reference != null)
+            {
+                double[] live = CreateRadialSignature(contour, centroid, 0.0, reference.Length);
+                int bestShift = 0;
+                double bestError = double.MaxValue;
+
+                for (int shift = 0; shift < reference.Length; shift++)
+                {
+                    double error = 0.0;
+                    for (int i = 0; i < reference.Length; i++)
+                    {
+                        double difference = reference[i] - live[(i + shift) % live.Length];
+                        error += difference * difference;
+                    }
+
+                    if (error < bestError)
+                    {
+                        bestError = error;
+                        bestShift = shift;
+                    }
+                }
+
+                angle = bestShift * 2.0 * Math.PI / reference.Length;
+            }
+
+            CalculateSpans(contour, centroid, angle, out span1, out span2);
+        }
+
+        private static double[] ParseOrientationSignature(string value)
+        {
+            const string prefix = "RADIAL360|";
+            if (string.IsNullOrWhiteSpace(value) || !value.StartsWith(prefix, StringComparison.Ordinal))
+                return null;
+
+            string[] parts = value.Substring(prefix.Length).Split(',');
+            if (parts.Length != 360) return null;
+
+            double[] result = new double[parts.Length];
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (!double.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out result[i]))
+                    return null;
+            }
+            return result;
+        }
+
+        private static double[] CreateRadialSignature(OpenCvSharp.Point[] contour, Point2f center,
+            double startAngle, int sampleCount)
+        {
+            double[] result = new double[sampleCount];
+            double total = 0.0;
+            for (int i = 0; i < sampleCount; i++)
+            {
+                double rayAngle = startAngle + i * 2.0 * Math.PI / sampleCount;
+                double rayX = Math.Cos(rayAngle);
+                double rayY = Math.Sin(rayAngle);
+                double radius = 0.0;
+
+                for (int p = 0; p < contour.Length; p++)
+                {
+                    OpenCvSharp.Point a = contour[p];
+                    OpenCvSharp.Point b = contour[(p + 1) % contour.Length];
+                    double edgeX = b.X - a.X;
+                    double edgeY = b.Y - a.Y;
+                    double denominator = rayX * edgeY - rayY * edgeX;
+                    if (Math.Abs(denominator) < 1e-9) continue;
+
+                    double fromCenterX = a.X - center.X;
+                    double fromCenterY = a.Y - center.Y;
+                    double rayDistance = (fromCenterX * edgeY - fromCenterY * edgeX) / denominator;
+                    double edgePosition = (fromCenterX * rayY - fromCenterY * rayX) / denominator;
+                    if (rayDistance >= 0.0 && edgePosition >= 0.0 && edgePosition <= 1.0)
+                        radius = Math.Max(radius, rayDistance);
+                }
+
+                result[i] = radius;
+                total += radius;
+            }
+
+            double mean = total / sampleCount;
+            if (mean > double.Epsilon)
+            {
+                for (int i = 0; i < result.Length; i++) result[i] /= mean;
+            }
+            return result;
+        }
+
+        private static void CalculateSpans(OpenCvSharp.Point[] contour, Point2f centroid,
+            double angle, out float span1, out float span2)
+        {
+            double dx = Math.Cos(angle), dy = Math.Sin(angle);
+            double nx = -dy, ny = dx;
+            double maxP1 = double.MinValue, minP1 = double.MaxValue;
+            double maxP2 = double.MinValue, minP2 = double.MaxValue;
+
+            foreach (var pt in contour)
+            {
+                double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
+                maxP1 = Math.Max(maxP1, p1);
+                minP1 = Math.Min(minP1, p1);
+                maxP2 = Math.Max(maxP2, p2);
+                minP2 = Math.Min(minP2, p2);
             }
 
             span1 = (float)(maxP1 - minP1);

@@ -408,6 +408,7 @@ namespace Matric_scope
             Point2f refCenter;
             double refAngle;
             float span1, span2;
+            string contourData;
 
             using (Mat gray = new Mat())
             using (Mat edges = new Mat())
@@ -434,6 +435,7 @@ namespace Matric_scope
 
                 // Extact Bi-Axial independent dimensions based on the new Spatial Mathematics
                 CustomShapeEngine.GetInvariantTransform(hull, out refCenter, out refAngle, out span1, out span2);
+                contourData = CustomShapeEngine.CreateOrientationSignature(hull, refCenter, refAngle);
             }
 
             string recordsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CustomShapes");
@@ -456,7 +458,7 @@ namespace Matric_scope
                 LengthPt1 = normL1,
                 LengthPt2 = normL2,
                 RefAngle = 0f,
-                ContourData = "",
+                ContourData = contourData,
                 SnapToEdge = chkSnapToEdge.Checked
             };
 
