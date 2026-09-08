@@ -5,10 +5,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 namespace Matric_scope
 {
     public partial class frmHistory : Form
@@ -255,6 +257,118 @@ namespace Matric_scope
             {
                 MessageBox.Show("The physical asset cannot be found at that disk mapping location.", "File Missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnExportExcel_Click(object sender, EventArgs e)
+        {
+            DataView recordsToExport = dataTable.DefaultView;
+            if (recordsToExport.Count == 0)
+            {
+                MessageBox.Show("There are no history records matching the current filters.",
+                    "Nothing to Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.Title = "Export History to Excel";
+                dialog.Filter = "Excel Workbook (*.xlsx)|*.xlsx";
+                dialog.DefaultExt = "xlsx";
+                dialog.AddExtension = true;
+                dialog.FileName = $"Measurement_History_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    ExportHistoryWorkbook(dialog.FileName, recordsToExport);
+                    MessageBox.Show($"Exported {recordsToExport.Count} record(s) successfully.",
+                        "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"The Excel file could not be created.\n\n{ex.Message}",
+                        "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private static void ExportHistoryWorkbook(string filePath, DataView records)
+        {
+            string[] columns = { "ID", "Date", "Shape", "Length", "Width" };
+
+            using (FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            using (ZipArchive archive = new ZipArchive(stream, ZipArchiveMode.Create))
+            {
+                WriteZipEntry(archive, "[Content_Types].xml",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">" +
+                    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>" +
+                    "<Default Extension=\"xml\" ContentType=\"application/xml\"/>" +
+                    "<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>" +
+                    "<Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>" +
+                    "</Types>");
+
+                WriteZipEntry(archive, "_rels/.rels",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+                    "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>" +
+                    "</Relationships>");
+
+                WriteZipEntry(archive, "xl/workbook.xml",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                    "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">" +
+                    "<sheets><sheet name=\"Measurement History\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+
+                WriteZipEntry(archive, "xl/_rels/workbook.xml.rels",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+                    "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>" +
+                    "</Relationships>");
+
+                ZipArchiveEntry worksheetEntry = archive.CreateEntry("xl/worksheets/sheet1.xml", CompressionLevel.Optimal);
+                using (Stream worksheetStream = worksheetEntry.Open())
+                using (XmlWriter writer = XmlWriter.Create(worksheetStream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+                {
+                    writer.WriteStartDocument(true);
+                    writer.WriteStartElement("worksheet", "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+                    writer.WriteStartElement("sheetData");
+                    WriteExcelRow(writer, columns.Cast<object>());
+
+                    foreach (DataRowView record in records)
+                    {
+                        WriteExcelRow(writer, columns.Select(column => record.Row.Table.Columns.Contains(column) ? record[column] : ""));
+                    }
+
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                }
+            }
+        }
+
+        private static void WriteZipEntry(ZipArchive archive, string entryName, string contents)
+        {
+            ZipArchiveEntry entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+            using (StreamWriter writer = new StreamWriter(entry.Open(), new UTF8Encoding(false)))
+            {
+                writer.Write(contents);
+            }
+        }
+
+        private static void WriteExcelRow(XmlWriter writer, IEnumerable<object> values)
+        {
+            writer.WriteStartElement("row");
+            foreach (object value in values)
+            {
+                writer.WriteStartElement("c");
+                writer.WriteAttributeString("t", "inlineStr");
+                writer.WriteStartElement("is");
+                writer.WriteElementString("t", value == null || value == DBNull.Value ? "" : Convert.ToString(value));
+                writer.WriteEndElement();
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
         }
 
         private void btnDelete_Click(object sender, EventArgs e)

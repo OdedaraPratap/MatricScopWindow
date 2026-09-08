@@ -48,6 +48,7 @@
             this.chkUseDateFilter = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
+            this.btnExportExcel = new System.Windows.Forms.Button();
             this.picPreview = new System.Windows.Forms.PictureBox();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -266,6 +267,20 @@
             this.btnDelete.TabIndex = 31;
             this.btnDelete.UseVisualStyleBackColor = false;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
+            //
+            // btnExportExcel
+            //
+            this.btnExportExcel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnExportExcel.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnExportExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnExportExcel.ForeColor = System.Drawing.Color.White;
+            this.btnExportExcel.Location = new System.Drawing.Point(280, 533);
+            this.btnExportExcel.Name = "btnExportExcel";
+            this.btnExportExcel.Size = new System.Drawing.Size(142, 39);
+            this.btnExportExcel.TabIndex = 34;
+            this.btnExportExcel.Text = "Export to Excel";
+            this.btnExportExcel.UseVisualStyleBackColor = false;
+            this.btnExportExcel.Click += new System.EventHandler(this.btnExportExcel_Click);
             // 
             // picPreview
             // 
@@ -283,6 +298,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(991, 584);
+            this.Controls.Add(this.btnExportExcel);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.chkUseDateFilter);
             this.Controls.Add(this.btnDelete);
@@ -330,5 +346,6 @@
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.CheckBox chkUseDateFilter;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnExportExcel;
     }
 }
