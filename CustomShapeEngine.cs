@@ -40,7 +40,13 @@ namespace Matric_scope
                 var liveHull = Cv2.ConvexHull(largestContour);
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
-                GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                Point2f liveCenter;
+                double liveAngle;
+                float liveSpan1, liveSpan2;
+                if (activeShape.TransformVersion >= 2)
+                    GetInvariantTransform(liveHull, out liveCenter, out liveAngle, out liveSpan1, out liveSpan2);
+                else
+                    GetLegacyInvariantTransform(liveHull, out liveCenter, out liveAngle, out liveSpan1, out liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -204,6 +210,100 @@ namespace Matric_scope
 
             span1 = (float)(maxP1 - minP1);
             span2 = (float)(maxP2 - minP2);
+        }
+
+        private static void GetLegacyInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
+        {
+            Moments mu = Cv2.Moments(hull);
+            centroid = new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
+
+            double theta;
+            if (Math.Abs(mu.Mu20 - mu.Mu02) < 1e-2 && Math.Abs(mu.Mu11) < 1e-2)
+            {
+                theta = 0.0;
+                double maxR = 0.0;
+                foreach (var pt in hull)
+                {
+                    double r2 = Math.Pow(pt.X - centroid.X, 2) + Math.Pow(pt.Y - centroid.Y, 2);
+                    if (r2 > maxR)
+                    {
+                        maxR = r2;
+                        theta = Math.Atan2(pt.Y - centroid.Y, pt.X - centroid.X);
+                    }
+                }
+            }
+            else
+            {
+                theta = 0.5 * Math.Atan2(2 * mu.Mu11, mu.Mu20 - mu.Mu02);
+            }
+
+            double dx = Math.Cos(theta), dy = Math.Sin(theta);
+            double nx = -dy, ny = dx;
+            GetProjectionBounds(hull, centroid, dx, dy, nx, ny,
+                out double minP1, out double maxP1, out double minP2, out double maxP2);
+
+            double spanP1 = maxP1 - minP1;
+            double spanP2 = maxP2 - minP2;
+            double asym1 = Math.Abs(Math.Abs(maxP1) - Math.Abs(minP1));
+            double asym2 = Math.Abs(Math.Abs(maxP2) - Math.Abs(minP2));
+
+            if (Math.Max(asym1, asym2) > 0.05 * Math.Sqrt(mu.M00))
+            {
+                if (asym2 > asym1) theta += Math.PI / 2.0;
+
+                dx = Math.Cos(theta);
+                dy = Math.Sin(theta);
+                GetAxisBounds(hull, centroid, dx, dy, out minP1, out maxP1);
+                if (Math.Abs(minP1) > Math.Abs(maxP1)) theta += Math.PI;
+            }
+            else
+            {
+                if (spanP2 > spanP1) theta += Math.PI / 2.0;
+                double finalDx = Math.Cos(theta), finalDy = Math.Sin(theta);
+                if (finalDy > 0.001 || (Math.Abs(finalDy) <= 0.001 && finalDx < 0)) theta += Math.PI;
+            }
+
+            while (theta < 0) theta += 2 * Math.PI;
+            while (theta >= 2 * Math.PI) theta -= 2 * Math.PI;
+            angle = theta;
+
+            dx = Math.Cos(angle);
+            dy = Math.Sin(angle);
+            nx = -dy;
+            ny = dx;
+            GetProjectionBounds(hull, centroid, dx, dy, nx, ny,
+                out minP1, out maxP1, out minP2, out maxP2);
+            span1 = (float)(maxP1 - minP1);
+            span2 = (float)(maxP2 - minP2);
+        }
+
+        private static void GetProjectionBounds(OpenCvSharp.Point[] hull, Point2f centroid,
+            double dx, double dy, double nx, double ny, out double minP1, out double maxP1,
+            out double minP2, out double maxP2)
+        {
+            minP1 = minP2 = 0.0;
+            maxP1 = maxP2 = 0.0;
+            foreach (var pt in hull)
+            {
+                double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
+                if (p1 < minP1) minP1 = p1;
+                if (p1 > maxP1) maxP1 = p1;
+                if (p2 < minP2) minP2 = p2;
+                if (p2 > maxP2) maxP2 = p2;
+            }
+        }
+
+        private static void GetAxisBounds(OpenCvSharp.Point[] hull, Point2f centroid,
+            double dx, double dy, out double minimum, out double maximum)
+        {
+            minimum = maximum = 0.0;
+            foreach (var pt in hull)
+            {
+                double projection = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                if (projection < minimum) minimum = projection;
+                if (projection > maximum) maximum = projection;
+            }
         }
 
         public static Point2f ProjectToLocal(Point2f pt, Point2f centroid, double angle, float span1, float span2)

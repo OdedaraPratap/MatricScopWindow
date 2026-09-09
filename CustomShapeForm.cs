@@ -457,7 +457,8 @@ namespace Matric_scope
                 LengthPt2 = normL2,
                 RefAngle = 0f,
                 ContourData = "",
-                SnapToEdge = chkSnapToEdge.Checked
+                SnapToEdge = chkSnapToEdge.Checked,
+                TransformVersion = 2
             };
 
             DatabaseHelper.SaveShape(shape);
