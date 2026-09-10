@@ -268,6 +268,23 @@ namespace Matric_scope
             PopulateCustomShapesMenu();
         }
 
+        private Bitmap GetLiveFrameCopy()
+        {
+            lock (frameLock)
+            {
+                if (liveMat == null || liveMat.IsDisposed || liveMat.Empty()) return null;
+                return BitmapConverter.ToBitmap(liveMat);
+            }
+        }
+
+        private void btnManualMeasure_Click(object sender, EventArgs e)
+        {
+            using (var manualForm = new ManualMeasurementForm(GetLiveFrameCopy))
+            {
+                manualForm.ShowDialog(this);
+            }
+        }
+
         private void InitializeArduinoConnection()
         {
             try

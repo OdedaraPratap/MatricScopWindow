@@ -39,6 +39,7 @@ namespace Matric_scope
             this.btnGeneralC = new System.Windows.Forms.Button();
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
+            this.btnManualMeasure = new System.Windows.Forms.Button();
             this.panelRightSide = new System.Windows.Forms.Panel();
             this.cmbRulesFile = new System.Windows.Forms.ComboBox();
             this.picPreview = new System.Windows.Forms.PictureBox();
@@ -294,6 +295,21 @@ namespace Matric_scope
             this.btnStop.TabIndex = 7;
             this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
             // 
+            // btnManualMeasure
+            //
+            this.btnManualMeasure.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.btnManualMeasure.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnManualMeasure.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnManualMeasure.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnManualMeasure.Location = new System.Drawing.Point(18, 400);
+            this.btnManualMeasure.Name = "btnManualMeasure";
+            this.btnManualMeasure.Size = new System.Drawing.Size(184, 58);
+            this.btnManualMeasure.TabIndex = 13;
+            this.btnManualMeasure.Text = "MANUAL\r\nMEASUREMENT";
+            this.btnManualMeasure.UseVisualStyleBackColor = false;
+            this.btnManualMeasure.Click += new System.EventHandler(this.btnManualMeasure_Click);
+            //
             // panelRightSide
             // 
             this.panelRightSide.BackColor = System.Drawing.Color.White;
@@ -434,6 +450,7 @@ namespace Matric_scope
             // panelLeftSide
             // 
             this.panelLeftSide.BackColor = System.Drawing.Color.White;
+            this.panelLeftSide.Controls.Add(this.btnManualMeasure);
             this.panelLeftSide.Controls.Add(this.lblCurrentMode);
             this.panelLeftSide.Controls.Add(this.lblRatioVal);
             this.panelLeftSide.Controls.Add(this.lblRatioTitle);
@@ -594,6 +611,7 @@ namespace Matric_scope
         private System.Windows.Forms.Button btnHm;
         private System.Windows.Forms.Button btnTilt;
         private System.Windows.Forms.Button btnEM;
+        private System.Windows.Forms.Button btnManualMeasure;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Button btnMin;
