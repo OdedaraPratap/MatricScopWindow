@@ -513,11 +513,11 @@ namespace Matric_scope
 
         private void DrawEditableHandles(Graphics graphics)
         {
-            DrawScreenHandle(graphics, MapImageToScreenCoordinates(centroid), Color.Yellow);
-            if (wPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt1.Value), Color.Red);
-            if (wPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt2.Value), Color.Red);
-            if (lPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt1.Value), Color.DeepSkyBlue);
-            if (lPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt2.Value), Color.DeepSkyBlue);
+            DrawScreenHandle(graphics, MapImageToScreenCoordinates(centroid));
+            if (wPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt1.Value));
+            if (wPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt2.Value));
+            if (lPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt1.Value));
+            if (lPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt2.Value));
 
             // Draw values as screen-space overlays as well as in the saved image.
             // These labels repaint synchronously on every drag movement and stay
@@ -566,13 +566,11 @@ namespace Matric_scope
             }
         }
 
-        private static void DrawScreenHandle(Graphics graphics, PointF center, Color color)
+        private static void DrawScreenHandle(Graphics graphics, PointF center)
         {
-            using (var fill = new SolidBrush(color))
-            using (var outline = new Pen(Color.White, 2f))
+            using (var outline = new Pen(Color.White, 1.5f))
             {
-                graphics.FillEllipse(fill, center.X - 6f, center.Y - 6f, 12f, 12f);
-                graphics.DrawEllipse(outline, center.X - 10f, center.Y - 10f, 20f, 20f);
+                graphics.DrawEllipse(outline, center.X - 5f, center.Y - 5f, 10f, 10f);
             }
         }
 

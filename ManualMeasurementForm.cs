@@ -318,7 +318,7 @@ namespace Matric_scope
             using (var firstPen = new Pen(Color.Lime, 3F))
             using (var secondPen = new Pen(Color.DeepSkyBlue, 3F))
             using (var guidePen = new Pen(Color.FromArgb(190, Color.White), 2F) { DashStyle = DashStyle.Dash })
-            using (var pointOutline = new Pen(Color.White, 2F))
+            using (var pointOutline = new Pen(Color.White, 1.5F))
             {
                 PointF vertex = ImageToClient(points[0]);
                 if (points.Count >= 2)
@@ -334,14 +334,9 @@ namespace Matric_scope
                 for (int index = 0; index < points.Count; index++)
                 {
                     PointF clientPoint = ImageToClient(points[index]);
-                    Color pointColor = index == 0 ? Color.Yellow :
-                        (index == 1 ? Color.Lime : Color.DeepSkyBlue);
-                    using (var pointBrush = new SolidBrush(pointColor))
-                        e.Graphics.FillEllipse(pointBrush, clientPoint.X - 6, clientPoint.Y - 6, 12, 12);
-
-                    // The visible outer ring matches the 10-pixel mouse hit area,
-                    // making it clear where the operator can grab each point.
-                    e.Graphics.DrawEllipse(pointOutline, clientPoint.X - 10, clientPoint.Y - 10, 20, 20);
+                    // Keep the handle visually small. Its mouse hit area remains
+                    // 10 pixels, but only an unfilled white circle is drawn.
+                    e.Graphics.DrawEllipse(pointOutline, clientPoint.X - 5, clientPoint.Y - 5, 10, 10);
                 }
 
                 if (points.Count == 3)

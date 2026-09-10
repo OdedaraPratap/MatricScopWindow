@@ -111,14 +111,13 @@ namespace Matric_scope
                 Point2f calcL1 = ProjectToScreen(activeShape.LengthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
                 Point2f calcL2 = ProjectToScreen(activeShape.LengthPt2, liveCenter, liveAngle, liveSpan1, liveSpan2);
 
-                // 3. Straight Ray-Cast Snapping
-                if (activeShape.SnapToEdge)
-                {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
-                }
+                // Always intersect the trained directions with the live contour.
+                // This prevents scaled training points from extending past the
+                // object or stopping early when the live proportions change.
+                calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
+                calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
+                calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
+                calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
@@ -135,7 +134,11 @@ namespace Matric_scope
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                DrawMeasurementCircle(frame, calcW1);
+                DrawMeasurementCircle(frame, calcW2);
+                DrawMeasurementCircle(frame, calcL1);
+                DrawMeasurementCircle(frame, calcL2);
+                DrawMeasurementCircle(frame, liveCenter);
 
                 // ==========================================================
                 // 5. ADD TEXT MEASUREMENTS TO THE IMAGE
@@ -156,6 +159,11 @@ namespace Matric_scope
                 frame.ImWrite("CUSTOMS.png");
                 return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
             }
+        }
+
+        private static void DrawMeasurementCircle(Mat frame, Point2f point)
+        {
+            Cv2.Circle(frame, (OpenCvSharp.Point)point, 5, Scalar.White, 1, LineTypes.AntiAlias);
         }
 
         private static double ApplyVariation(double rawMeasurementMM, bool isLength)

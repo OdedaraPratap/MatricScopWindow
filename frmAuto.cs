@@ -335,7 +335,6 @@ namespace Matric_scope
             using (Graphics graphics = Graphics.FromImage(bitmap))
             using (var horizontalPen = new Pen(Color.Lime, 2f))
             using (var verticalPen = new Pen(Color.DeepSkyBlue, 2f))
-            using (var centerBrush = new SolidBrush(Color.Yellow))
             {
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 // Full-frame ruler axes. These are a visual scale only; no object
@@ -343,8 +342,7 @@ namespace Matric_scope
                 graphics.DrawLine(horizontalPen, 0, centerY, bitmap.Width - 1, centerY);
                 graphics.DrawLine(verticalPen, centerX, 0, centerX, bitmap.Height - 1);
                 DrawCenteredRulerScale(graphics, bitmap.Size, centerX, centerY);
-                graphics.FillEllipse(centerBrush, centerX - 6, centerY - 6, 12, 12);
-                graphics.DrawEllipse(Pens.White, centerX - 10, centerY - 10, 20, 20);
+                graphics.DrawEllipse(Pens.White, centerX - 5, centerY - 5, 10, 10);
             }
 
             return bitmap;
