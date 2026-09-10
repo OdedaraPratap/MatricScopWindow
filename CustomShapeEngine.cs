@@ -7,6 +7,10 @@ namespace Matric_scope
     public class CustomShapeEngine
     {
         public double PixelToMmRatio { get; set; } = 1.0;
+        private int stabilizedShapeId = -1;
+        private double stabilizedAngle;
+        private bool hasStabilizedAngle;
+        private readonly object orientationLock = new object();
 
         /*public string MeasureCustomShape(Mat frame, ShapeData activeShape, Mat backgroundGray = null, int thresholdValue = 100)
         {
@@ -104,6 +108,7 @@ namespace Matric_scope
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
                 GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                StabilizeInvariantOrientation(activeShape, ref liveAngle, ref liveSpan1, ref liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -111,14 +116,12 @@ namespace Matric_scope
                 Point2f calcL1 = ProjectToScreen(activeShape.LengthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
                 Point2f calcL2 = ProjectToScreen(activeShape.LengthPt2, liveCenter, liveAngle, liveSpan1, liveSpan2);
 
-                // 3. Straight Ray-Cast Snapping
-                if (activeShape.SnapToEdge)
-                {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
-                }
+                // Custom axes represent edge-to-edge dimensions. Always intersect
+                // their stabilized directions with the current object boundary.
+                calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
+                calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
+                calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
+                calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
@@ -185,6 +188,61 @@ namespace Matric_scope
 
             // Add the variation to the original measurement
             return rawMeasurementMM + variation;
+        }
+
+        private void StabilizeInvariantOrientation(ShapeData shape, ref double angle, ref float span1, ref float span2)
+        {
+            // PCA has four equivalent orientations. Near-square contours can jump
+            // between them from tiny amounts of camera noise, rotating trained
+            // axes by 90 degrees. Select the equivalent closest to the training
+            // angle on the first frame and closest to the prior frame thereafter.
+            lock (orientationLock)
+            {
+                double target = hasStabilizedAngle && stabilizedShapeId == shape.Id
+                    ? stabilizedAngle
+                    : shape.RefAngle;
+                double bestAngle = angle;
+                double bestDistance = double.MaxValue;
+                int bestQuarterTurns = 0;
+
+                for (int quarterTurns = -2; quarterTurns <= 2; quarterTurns++)
+                {
+                    double candidate = angle + quarterTurns * Math.PI / 2.0;
+                    double distance = Math.Abs(WrapAngle(candidate - target));
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        bestAngle = candidate;
+                        bestQuarterTurns = quarterTurns;
+                    }
+                }
+
+                if (Math.Abs(bestQuarterTurns) % 2 == 1)
+                {
+                    float oldSpan1 = span1;
+                    span1 = span2;
+                    span2 = oldSpan1;
+                }
+
+                angle = WrapPositiveAngle(bestAngle);
+                stabilizedAngle = angle;
+                stabilizedShapeId = shape.Id;
+                hasStabilizedAngle = true;
+            }
+        }
+
+        private static double WrapAngle(double angle)
+        {
+            while (angle <= -Math.PI) angle += Math.PI * 2.0;
+            while (angle > Math.PI) angle -= Math.PI * 2.0;
+            return angle;
+        }
+
+        private static double WrapPositiveAngle(double angle)
+        {
+            while (angle < 0.0) angle += Math.PI * 2.0;
+            while (angle >= Math.PI * 2.0) angle -= Math.PI * 2.0;
+            return angle;
         }
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)

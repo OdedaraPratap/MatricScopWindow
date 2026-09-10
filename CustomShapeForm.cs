@@ -664,7 +664,9 @@ namespace Matric_scope
                 WidthPt2 = normW2,
                 LengthPt1 = normL1,
                 LengthPt2 = normL2,
-                RefAngle = 0f,
+                // Persist the detected training orientation. Runtime uses this to
+                // resolve the 90-degree PCA ambiguity of square/near-square shapes.
+                RefAngle = (float)refAngle,
                 ContourData = "",
                 SnapToEdge = chkSnapToEdge.Checked
             };
