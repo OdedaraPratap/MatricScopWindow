@@ -314,6 +314,11 @@ namespace Matric_scope
                 SetSymmetricEndpoint(activeHandle, imgPt);
                 UpdateCustomMeasurementStatus();
                 RedrawOverlay();
+                // MouseMove can fire faster than normal invalidated paints. Force
+                // one synchronous repaint so the operator sees every new value
+                // during the drag rather than only after releasing the mouse.
+                lblStatus.Refresh();
+                pictureBox.Refresh();
             }
             else
             {
@@ -333,15 +338,14 @@ namespace Matric_scope
             }
             else if (e.Button == MouseButtons.Left && activeHandle != DragHandle.None)
             {
-                bool wasWidth = activeHandle == DragHandle.WidthPoint1 || activeHandle == DragHandle.WidthPoint2;
                 activeHandle = DragHandle.None;
                 currentState = ClickState.None;
                 pictureBox.Capture = false;
                 pictureBox.Cursor = Cursors.Default;
-                lblStatus.Text = wasWidth
-                    ? "Width saved from centroid. Drag either red endpoint to adjust."
-                    : "Length saved from centroid. Drag either blue endpoint to adjust.";
+                UpdateCustomMeasurementStatus();
                 RedrawOverlay();
+                lblStatus.Refresh();
+                pictureBox.Refresh();
             }
         }
 
@@ -489,30 +493,16 @@ namespace Matric_scope
             displayFrame?.Dispose();
             displayFrame = sourceFrame.Clone();
 
-            // Draw Width and Real-Time mm label
+            // Draw the width axis; its live value is rendered in screen space.
             if (wPt1.HasValue && wPt2.HasValue)
             {
                 Cv2.Line(displayFrame, (OpenCvSharp.Point)wPt1.Value, (OpenCvSharp.Point)wPt2.Value, Scalar.Red, 2);
-
-                double widthPixels = wPt1.Value.DistanceTo(wPt2.Value);
-                double widthMm = widthPixels * pixelToMmRatio;
-
-                OpenCvSharp.Point wMid = new OpenCvSharp.Point((wPt1.Value.X + wPt2.Value.X) / 2, (wPt1.Value.Y + wPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{widthMm:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
-                    HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
             }
 
-            // Draw Length and Real-Time mm label
+            // Draw the length axis; its live value is rendered in screen space.
             if (lPt1.HasValue && lPt2.HasValue)
             {
                 Cv2.Line(displayFrame, (OpenCvSharp.Point)lPt1.Value, (OpenCvSharp.Point)lPt2.Value, Scalar.Blue, 2);
-
-                double lengthPixels = lPt1.Value.DistanceTo(lPt2.Value);
-                double lengthMm = lengthPixels * pixelToMmRatio;
-
-                OpenCvSharp.Point lMid = new OpenCvSharp.Point((lPt1.Value.X + lPt2.Value.X) / 2, (lPt1.Value.Y + lPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{lengthMm:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
-                    HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
             }
 
             Bitmap oldBmp = pictureBox.Image as Bitmap;
@@ -528,6 +518,52 @@ namespace Matric_scope
             if (wPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt2.Value), Color.Red);
             if (lPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt1.Value), Color.DeepSkyBlue);
             if (lPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt2.Value), Color.DeepSkyBlue);
+
+            // Draw values as screen-space overlays as well as in the saved image.
+            // These labels repaint synchronously on every drag movement and stay
+            // the same readable size at every zoom level.
+            if (wPt1.HasValue && wPt2.HasValue)
+            {
+                PointF first = MapImageToScreenCoordinates(wPt1.Value);
+                PointF second = MapImageToScreenCoordinates(wPt2.Value);
+                string width = string.Format("Width {0:F2} mm",
+                    wPt1.Value.DistanceTo(wPt2.Value) * pixelToMmRatio);
+                DrawLiveValue(graphics, width, OffsetFromLineMidpoint(first, second, 24f), Color.Red);
+            }
+
+            if (lPt1.HasValue && lPt2.HasValue)
+            {
+                PointF first = MapImageToScreenCoordinates(lPt1.Value);
+                PointF second = MapImageToScreenCoordinates(lPt2.Value);
+                string length = string.Format("Length {0:F2} mm",
+                    lPt1.Value.DistanceTo(lPt2.Value) * pixelToMmRatio);
+                DrawLiveValue(graphics, length, OffsetFromLineMidpoint(first, second, -24f), Color.DeepSkyBlue);
+            }
+        }
+
+        private static PointF OffsetFromLineMidpoint(PointF first, PointF second, float offset)
+        {
+            float middleX = (first.X + second.X) / 2f;
+            float middleY = (first.Y + second.Y) / 2f;
+            float dx = second.X - first.X;
+            float dy = second.Y - first.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length < 0.001f) return new PointF(middleX, middleY);
+            return new PointF(middleX - dy / length * offset, middleY + dx / length * offset);
+        }
+
+        private static void DrawLiveValue(Graphics graphics, string text, PointF center, Color color)
+        {
+            using (var font = new Font("Microsoft Sans Serif", 11f, FontStyle.Bold))
+            using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
+            using (var foreground = new SolidBrush(color))
+            {
+                SizeF size = graphics.MeasureString(text, font);
+                RectangleF box = new RectangleF(center.X - size.Width / 2f - 5f,
+                    center.Y - size.Height / 2f - 3f, size.Width + 10f, size.Height + 6f);
+                graphics.FillRectangle(background, box);
+                graphics.DrawString(text, font, foreground, box.X + 5f, box.Y + 3f);
+            }
         }
 
         private static void DrawScreenHandle(Graphics graphics, PointF center, Color color)
