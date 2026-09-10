@@ -322,7 +322,7 @@ namespace Matric_scope
             this.btnLiveCenterAxes.Name = "btnLiveCenterAxes";
             this.btnLiveCenterAxes.Size = new System.Drawing.Size(184, 58);
             this.btnLiveCenterAxes.TabIndex = 14;
-            this.btnLiveCenterAxes.Text = "SHOW CENTER\r\nAXES";
+            this.btnLiveCenterAxes.Text = "SHOW CENTER\r\nSCALE";
             this.btnLiveCenterAxes.UseVisualStyleBackColor = false;
             this.btnLiveCenterAxes.Click += new System.EventHandler(this.btnLiveCenterAxes_Click);
             //

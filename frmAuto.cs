@@ -300,8 +300,8 @@ namespace Matric_scope
             }
 
             btnLiveCenterAxes.Text = showLiveCenterAxes
-                ? "HIDE CENTER\r\nAXES"
-                : "SHOW CENTER\r\nAXES";
+                ? "HIDE CENTER\r\nSCALE"
+                : "SHOW CENTER\r\nSCALE";
             btnLiveCenterAxes.BackColor = showLiveCenterAxes
                 ? Color.LightGreen
                 : Color.FromArgb(250, 182, 105);
@@ -331,51 +331,70 @@ namespace Matric_scope
 
             int centerX = bitmap.Width / 2;
             int centerY = bitmap.Height / 2;
-            int halfWidth = Math.Max(20, (int)(bitmap.Width * 0.40));
-            int halfHeight = Math.Max(20, (int)(bitmap.Height * 0.40));
-            int left = centerX - halfWidth;
-            int right = centerX + halfWidth;
-            int top = centerY - halfHeight;
-            int bottom = centerY + halfHeight;
 
             using (Graphics graphics = Graphics.FromImage(bitmap))
-            using (var widthPen = new Pen(Color.Lime, 3f))
-            using (var lengthPen = new Pen(Color.DeepSkyBlue, 3f))
+            using (var horizontalPen = new Pen(Color.Lime, 2f))
+            using (var verticalPen = new Pen(Color.DeepSkyBlue, 2f))
             using (var centerBrush = new SolidBrush(Color.Yellow))
             {
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                graphics.DrawLine(widthPen, left, centerY, right, centerY);
-                graphics.DrawLine(lengthPen, centerX, top, centerX, bottom);
+                // Full-frame ruler axes. These are a visual scale only; no object
+                // is detected and no automatic object measurement is performed.
+                graphics.DrawLine(horizontalPen, 0, centerY, bitmap.Width - 1, centerY);
+                graphics.DrawLine(verticalPen, centerX, 0, centerX, bitmap.Height - 1);
+                DrawCenteredRulerScale(graphics, bitmap.Size, centerX, centerY);
                 graphics.FillEllipse(centerBrush, centerX - 6, centerY - 6, 12, 12);
                 graphics.DrawEllipse(Pens.White, centerX - 10, centerY - 10, 20, 20);
-
-                string widthText = FormatLiveAxisMeasurement(right - left, "Width");
-                string lengthText = FormatLiveAxisMeasurement(bottom - top, "Length");
-                DrawLiveAxisLabel(graphics, widthText, new PointF(centerX, centerY - 24), Color.Lime);
-                DrawLiveAxisLabel(graphics, lengthText, new PointF(centerX + 65, centerY + 24), Color.DeepSkyBlue);
             }
 
             return bitmap;
         }
 
-        private string FormatLiveAxisMeasurement(int pixels, string name)
+        private void DrawCenteredRulerScale(Graphics graphics, System.Drawing.Size frameSize, int centerX, int centerY)
         {
-            return liveAxisPixelsPerMillimeter > 0.0
-                ? string.Format("{0}: {1:F2} mm", name, pixels / liveAxisPixelsPerMillimeter)
-                : string.Format("{0}: {1} px", name, pixels);
-        }
+            bool calibrated = liveAxisPixelsPerMillimeter > 0.0;
+            double minorStepPixels = calibrated ? liveAxisPixelsPerMillimeter / 10.0 : 10.0;
+            if (minorStepPixels < 2.0) minorStepPixels = 2.0;
 
-        private static void DrawLiveAxisLabel(Graphics graphics, string text, PointF center, Color color)
-        {
-            using (var font = new Font("Microsoft Sans Serif", 12f, FontStyle.Bold))
-            using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
-            using (var foreground = new SolidBrush(color))
+            using (var horizontalTickPen = new Pen(Color.Lime, 1f))
+            using (var verticalTickPen = new Pen(Color.DeepSkyBlue, 1f))
+            using (var font = new Font("Microsoft Sans Serif", 8f, FontStyle.Bold))
+            using (var horizontalBrush = new SolidBrush(Color.Lime))
+            using (var verticalBrush = new SolidBrush(Color.DeepSkyBlue))
             {
-                SizeF size = graphics.MeasureString(text, font);
-                var box = new RectangleF(center.X - size.Width / 2f - 5f,
-                    center.Y - size.Height / 2f - 3f, size.Width + 10f, size.Height + 6f);
-                graphics.FillRectangle(background, box);
-                graphics.DrawString(text, font, foreground, box.X + 5f, box.Y + 3f);
+                int maxTicks = (int)(Math.Max(frameSize.Width, frameSize.Height) / minorStepPixels) + 1;
+                for (int tick = -maxTicks; tick <= maxTicks; tick++)
+                {
+                    if (tick == 0) continue;
+                    bool major = Math.Abs(tick) % 10 == 0;
+                    bool medium = !major && Math.Abs(tick) % 5 == 0;
+                    int tickLength = major ? 18 : (medium ? 12 : 7);
+
+                    int x = (int)Math.Round(centerX + tick * minorStepPixels);
+                    if (x >= 0 && x < frameSize.Width)
+                    {
+                        graphics.DrawLine(horizontalTickPen, x, centerY - tickLength, x, centerY + tickLength);
+                        if (major)
+                        {
+                            string value = calibrated ? (tick / 10.0).ToString("0") : (tick * 10).ToString();
+                            graphics.DrawString(value, font, horizontalBrush, x + 2, centerY + tickLength + 2);
+                        }
+                    }
+
+                    int y = (int)Math.Round(centerY + tick * minorStepPixels);
+                    if (y >= 0 && y < frameSize.Height)
+                    {
+                        graphics.DrawLine(verticalTickPen, centerX - tickLength, y, centerX + tickLength, y);
+                        if (major)
+                        {
+                            string value = calibrated ? (-tick / 10.0).ToString("0") : (-tick * 10).ToString();
+                            graphics.DrawString(value, font, verticalBrush, centerX + tickLength + 2, y + 2);
+                        }
+                    }
+                }
+
+                string units = calibrated ? "CENTER SCALE (mm)" : "CENTER SCALE (px)";
+                graphics.DrawString(units, font, Brushes.Yellow, centerX + 14, centerY - 30);
             }
         }
 
