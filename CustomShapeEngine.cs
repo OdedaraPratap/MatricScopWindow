@@ -111,30 +111,32 @@ namespace Matric_scope
                 Point2f calcL1 = ProjectToScreen(activeShape.LengthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
                 Point2f calcL2 = ProjectToScreen(activeShape.LengthPt2, liveCenter, liveAngle, liveSpan1, liveSpan2);
 
-                // Always intersect the trained directions with the live contour.
-                // This prevents scaled training points from extending past the
-                // object or stopping early when the live proportions change.
-                calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                // 3. Straight Ray-Cast Snapping
+                if (activeShape.SnapToEdge)
+                {
+                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
+                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
+                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
+                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                }
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
                 double widthVal = calcW1.DistanceTo(calcW2) * PixelToMmRatio;
 
-                // Keep the runtime result identical to the value shown while the
-                // custom shape is trained. Applying the general LenVar/WidVar
-                // registry offsets here caused a second correction after the
-                // calibrated edge-to-edge distance had already been calculated.
+                try
+                {
+                    lengthVal = ApplyVariation(lengthVal, true);
+                    widthVal = ApplyVariation(widthVal, false);
+                }
+                catch
+                {
+                }
 
-                DrawAxisWithCircleGaps(frame, calcW1, liveCenter, calcW2, Scalar.Red);
-                DrawAxisWithCircleGaps(frame, calcL1, liveCenter, calcL2, Scalar.Blue);
-                DrawMeasurementCircle(frame, calcW1);
-                DrawMeasurementCircle(frame, calcW2);
-                DrawMeasurementCircle(frame, calcL1);
-                DrawMeasurementCircle(frame, calcL2);
-                DrawMeasurementCircle(frame, liveCenter);
+                Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
+                Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // 5. ADD TEXT MEASUREMENTS TO THE IMAGE
@@ -157,30 +159,32 @@ namespace Matric_scope
             }
         }
 
-        private static void DrawMeasurementCircle(Mat frame, Point2f point)
+        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
         {
-            Cv2.Circle(frame, (OpenCvSharp.Point)point, 5, Scalar.White, 1, LineTypes.AntiAlias);
-        }
+            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
+            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
 
-        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center, Point2f second, Scalar color)
-        {
-            DrawSegmentOutsideCircles(frame, first, center, color, 5f);
-            DrawSegmentOutsideCircles(frame, center, second, color, 5f);
-        }
+            // Cap it at 24 so anything 24mm or higher uses the last box
+            if (rangeIndex > 24) rangeIndex = 24;
+            if (rangeIndex < 0) rangeIndex = 0;
 
-        private static void DrawSegmentOutsideCircles(Mat frame, Point2f start, Point2f end, Scalar color, float radius)
-        {
-            float dx = end.X - start.X;
-            float dy = end.Y - start.Y;
-            float length = (float)Math.Sqrt(dx * dx + dy * dy);
-            if (length <= radius * 2f) return;
+            double variation = 0.0;
+            ModifyRegistry mr = new ModifyRegistry();
 
-            float ux = dx / length;
-            float uy = dy / length;
-            var visibleStart = new Point2f(start.X + ux * radius, start.Y + uy * radius);
-            var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
-            Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
-                color, 2, LineTypes.AntiAlias);
+            try
+            {
+                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
+                string val = mr.Read(regKey);
+
+                if (!string.IsNullOrEmpty(val))
+                {
+                    variation = Convert.ToDouble(val);
+                }
+            }
+            catch { }
+
+            // Add the variation to the original measurement
+            return rawMeasurementMM + variation;
         }
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
