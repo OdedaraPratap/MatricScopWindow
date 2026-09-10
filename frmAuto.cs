@@ -339,8 +339,10 @@ namespace Matric_scope
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 // Full-frame ruler axes. These are a visual scale only; no object
                 // is detected and no automatic object measurement is performed.
-                graphics.DrawLine(horizontalPen, 0, centerY, bitmap.Width - 1, centerY);
-                graphics.DrawLine(verticalPen, centerX, 0, centerX, bitmap.Height - 1);
+                graphics.DrawLine(horizontalPen, 0, centerY, centerX - 6, centerY);
+                graphics.DrawLine(horizontalPen, centerX + 6, centerY, bitmap.Width - 1, centerY);
+                graphics.DrawLine(verticalPen, centerX, 0, centerX, centerY - 6);
+                graphics.DrawLine(verticalPen, centerX, centerY + 6, centerX, bitmap.Height - 1);
                 DrawCenteredRulerScale(graphics, bitmap.Size, centerX, centerY);
                 graphics.DrawEllipse(Pens.White, centerX - 5, centerY - 5, 10, 10);
             }

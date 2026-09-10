@@ -251,7 +251,7 @@ namespace Matric_scope
                 panOffset.X = (int)(e.X - (e.X - panOffset.X) * zoomRatio);
                 panOffset.Y = (int)(e.Y - (e.Y - panOffset.Y) * zoomRatio);
             }
-            pictureBox.Invalidate();
+            RedrawOverlay();
         }
 
         private void PictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -367,7 +367,7 @@ namespace Matric_scope
         {
             zoomFactor = 1.0f;
             panOffset = new System.Drawing.Point(0, 0);
-            pictureBox.Invalidate();
+            RedrawOverlay();
         }
 
         private Rectangle GetAspectFitRectangle()
@@ -492,23 +492,52 @@ namespace Matric_scope
         {
             displayFrame?.Dispose();
             displayFrame = sourceFrame.Clone();
+            float handleRadiusInImage = GetImageRadiusForScreenPixels(5f);
 
             // Draw the width axis; its live value is rendered in screen space.
             if (wPt1.HasValue && wPt2.HasValue)
             {
-                Cv2.Line(displayFrame, (OpenCvSharp.Point)wPt1.Value, (OpenCvSharp.Point)wPt2.Value, Scalar.Red, 2);
+                DrawAxisWithCircleGaps(displayFrame, wPt1.Value, centroid, wPt2.Value, Scalar.Red, handleRadiusInImage);
             }
 
             // Draw the length axis; its live value is rendered in screen space.
             if (lPt1.HasValue && lPt2.HasValue)
             {
-                Cv2.Line(displayFrame, (OpenCvSharp.Point)lPt1.Value, (OpenCvSharp.Point)lPt2.Value, Scalar.Blue, 2);
+                DrawAxisWithCircleGaps(displayFrame, lPt1.Value, centroid, lPt2.Value, Scalar.Blue, handleRadiusInImage);
             }
 
             Bitmap oldBmp = pictureBox.Image as Bitmap;
             pictureBox.Image = BitmapConverter.ToBitmap(displayFrame);
             oldBmp?.Dispose();
             pictureBox.Invalidate();
+        }
+
+        private float GetImageRadiusForScreenPixels(float screenRadius)
+        {
+            Rectangle targetRect = GetAspectFitRectangle();
+            float displayScale = (float)targetRect.Width / sourceFrame.Width * zoomFactor;
+            return displayScale > 0f ? screenRadius / displayScale : screenRadius;
+        }
+
+        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center, Point2f second, Scalar color, float radius)
+        {
+            DrawSegmentOutsideCircles(frame, first, center, color, radius);
+            DrawSegmentOutsideCircles(frame, center, second, color, radius);
+        }
+
+        private static void DrawSegmentOutsideCircles(Mat frame, Point2f start, Point2f end, Scalar color, float radius)
+        {
+            float dx = end.X - start.X;
+            float dy = end.Y - start.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length <= radius * 2f) return;
+
+            float ux = dx / length;
+            float uy = dy / length;
+            var visibleStart = new Point2f(start.X + ux * radius, start.Y + uy * radius);
+            var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
+            Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
+                color, 2, LineTypes.AntiAlias);
         }
 
         private void DrawEditableHandles(Graphics graphics)

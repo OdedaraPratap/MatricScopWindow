@@ -132,8 +132,8 @@ namespace Matric_scope
                 {
                 }
 
-                Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
-                Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
+                DrawAxisWithCircleGaps(frame, calcW1, liveCenter, calcW2, Scalar.Red);
+                DrawAxisWithCircleGaps(frame, calcL1, liveCenter, calcL2, Scalar.Blue);
                 DrawMeasurementCircle(frame, calcW1);
                 DrawMeasurementCircle(frame, calcW2);
                 DrawMeasurementCircle(frame, calcL1);
@@ -164,6 +164,27 @@ namespace Matric_scope
         private static void DrawMeasurementCircle(Mat frame, Point2f point)
         {
             Cv2.Circle(frame, (OpenCvSharp.Point)point, 5, Scalar.White, 1, LineTypes.AntiAlias);
+        }
+
+        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center, Point2f second, Scalar color)
+        {
+            DrawSegmentOutsideCircles(frame, first, center, color, 5f);
+            DrawSegmentOutsideCircles(frame, center, second, color, 5f);
+        }
+
+        private static void DrawSegmentOutsideCircles(Mat frame, Point2f start, Point2f end, Scalar color, float radius)
+        {
+            float dx = end.X - start.X;
+            float dy = end.Y - start.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length <= radius * 2f) return;
+
+            float ux = dx / length;
+            float uy = dy / length;
+            var visibleStart = new Point2f(start.X + ux * radius, start.Y + uy * radius);
+            var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
+            Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
+                color, 2, LineTypes.AntiAlias);
         }
 
         private static double ApplyVariation(double rawMeasurementMM, bool isLength)

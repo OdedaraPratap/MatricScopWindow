@@ -322,12 +322,12 @@ namespace Matric_scope
             {
                 PointF vertex = ImageToClient(points[0]);
                 if (points.Count >= 2)
-                    e.Graphics.DrawLine(firstPen, vertex, ImageToClient(points[1]));
+                    DrawLineBetweenCircles(e.Graphics, firstPen, vertex, ImageToClient(points[1]), 6f);
                 else if (hasMousePosition && dragTarget == DragTarget.NewLine)
                     e.Graphics.DrawLine(guidePen, vertex, mousePosition);
 
                 if (points.Count >= 3)
-                    e.Graphics.DrawLine(secondPen, vertex, ImageToClient(points[2]));
+                    DrawLineBetweenCircles(e.Graphics, secondPen, vertex, ImageToClient(points[2]), 6f);
                 else if (points.Count == 2 && hasMousePosition && dragTarget == DragTarget.NewLine)
                     e.Graphics.DrawLine(guidePen, vertex, mousePosition);
 
@@ -344,6 +344,20 @@ namespace Matric_scope
 
                 DrawMeasurementLabels(e.Graphics);
             }
+        }
+
+        private static void DrawLineBetweenCircles(Graphics graphics, Pen pen, PointF start, PointF end, float radius)
+        {
+            float dx = end.X - start.X;
+            float dy = end.Y - start.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length <= radius * 2f) return;
+
+            float ux = dx / length;
+            float uy = dy / length;
+            graphics.DrawLine(pen,
+                start.X + ux * radius, start.Y + uy * radius,
+                end.X - ux * radius, end.Y - uy * radius);
         }
 
         private void DrawMeasurementLabels(Graphics graphics)
