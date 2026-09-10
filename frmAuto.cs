@@ -52,6 +52,8 @@ namespace Matric_scope
         private uEye.Camera Camera;
         ColorPalette cp;
         private bool isObjectPresent = false, hasMeasuredCurrentObject = false, captureFlag = false, isRenderingSnapshot = false, isSerialConnected = false;
+        private bool showLiveCenterAxes = false;
+        private double liveAxisPixelsPerMillimeter = 0.0;
         private OpenCvSharp.Point lastCentroid = new OpenCvSharp.Point(0, 0);
         private int stableFrameCount = 0, thresholdValue = 25;
         private const int FRAMES_TO_STABILIZE = 8; 
@@ -282,6 +284,98 @@ namespace Matric_scope
             using (var manualForm = new ManualMeasurementForm(GetLiveFrameCopy))
             {
                 manualForm.ShowDialog(this);
+            }
+        }
+
+        private void btnLiveCenterAxes_Click(object sender, EventArgs e)
+        {
+            showLiveCenterAxes = !showLiveCenterAxes;
+            liveAxisPixelsPerMillimeter = 0.0;
+
+            if (showLiveCenterAxes)
+            {
+                string ppmValue = mr.Read("ppm");
+                double.TryParse(ppmValue, out liveAxisPixelsPerMillimeter);
+                if (liveAxisPixelsPerMillimeter < 0.0) liveAxisPixelsPerMillimeter = 0.0;
+            }
+
+            btnLiveCenterAxes.Text = showLiveCenterAxes
+                ? "HIDE CENTER\r\nAXES"
+                : "SHOW CENTER\r\nAXES";
+            btnLiveCenterAxes.BackColor = showLiveCenterAxes
+                ? Color.LightGreen
+                : Color.FromArgb(250, 182, 105);
+
+            // Repaint immediately as well as on subsequent camera frames. This
+            // also removes the overlay immediately on the second button click.
+            RefreshCameraDisplay();
+        }
+
+        private void RefreshCameraDisplay()
+        {
+            lock (frameLock)
+            {
+                Mat frame = isRenderingSnapshot ? lastProcessedFrame : liveMat;
+                if (frame == null || frame.IsDisposed || frame.Empty()) return;
+
+                Bitmap oldBitmap = pictureBox1.Image as Bitmap;
+                pictureBox1.Image = CreateCameraDisplayBitmap(frame);
+                oldBitmap?.Dispose();
+            }
+        }
+
+        private Bitmap CreateCameraDisplayBitmap(Mat frame)
+        {
+            Bitmap bitmap = BitmapConverter.ToBitmap(frame);
+            if (!showLiveCenterAxes) return bitmap;
+
+            int centerX = bitmap.Width / 2;
+            int centerY = bitmap.Height / 2;
+            int halfWidth = Math.Max(20, (int)(bitmap.Width * 0.40));
+            int halfHeight = Math.Max(20, (int)(bitmap.Height * 0.40));
+            int left = centerX - halfWidth;
+            int right = centerX + halfWidth;
+            int top = centerY - halfHeight;
+            int bottom = centerY + halfHeight;
+
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            using (var widthPen = new Pen(Color.Lime, 3f))
+            using (var lengthPen = new Pen(Color.DeepSkyBlue, 3f))
+            using (var centerBrush = new SolidBrush(Color.Yellow))
+            {
+                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                graphics.DrawLine(widthPen, left, centerY, right, centerY);
+                graphics.DrawLine(lengthPen, centerX, top, centerX, bottom);
+                graphics.FillEllipse(centerBrush, centerX - 6, centerY - 6, 12, 12);
+                graphics.DrawEllipse(Pens.White, centerX - 10, centerY - 10, 20, 20);
+
+                string widthText = FormatLiveAxisMeasurement(right - left, "Width");
+                string lengthText = FormatLiveAxisMeasurement(bottom - top, "Length");
+                DrawLiveAxisLabel(graphics, widthText, new PointF(centerX, centerY - 24), Color.Lime);
+                DrawLiveAxisLabel(graphics, lengthText, new PointF(centerX + 65, centerY + 24), Color.DeepSkyBlue);
+            }
+
+            return bitmap;
+        }
+
+        private string FormatLiveAxisMeasurement(int pixels, string name)
+        {
+            return liveAxisPixelsPerMillimeter > 0.0
+                ? string.Format("{0}: {1:F2} mm", name, pixels / liveAxisPixelsPerMillimeter)
+                : string.Format("{0}: {1} px", name, pixels);
+        }
+
+        private static void DrawLiveAxisLabel(Graphics graphics, string text, PointF center, Color color)
+        {
+            using (var font = new Font("Microsoft Sans Serif", 12f, FontStyle.Bold))
+            using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
+            using (var foreground = new SolidBrush(color))
+            {
+                SizeF size = graphics.MeasureString(text, font);
+                var box = new RectangleF(center.X - size.Width / 2f - 5f,
+                    center.Y - size.Height / 2f - 3f, size.Width + 10f, size.Height + 6f);
+                graphics.FillRectangle(background, box);
+                graphics.DrawString(text, font, foreground, box.X + 5f, box.Y + 3f);
             }
         }
 
@@ -830,14 +924,14 @@ namespace Matric_scope
                             if (isRenderingSnapshot && lastProcessedFrame != null && !lastProcessedFrame.IsDisposed && !lastProcessedFrame.Empty())
                             {
                                 Bitmap oldBmp = pictureBox1.Image as Bitmap;
-                                pictureBox1.Image = BitmapConverter.ToBitmap(lastProcessedFrame);
+                                pictureBox1.Image = CreateCameraDisplayBitmap(lastProcessedFrame);
                                 oldBmp?.Dispose();
                             }
                             // 2. Otherwise, stream the zero-lag live feed unmodified
                             else if (liveMat != null && !liveMat.IsDisposed && !liveMat.Empty())
                             {
                                 Bitmap oldBmp = pictureBox1.Image as Bitmap;
-                                pictureBox1.Image = BitmapConverter.ToBitmap(liveMat);
+                                pictureBox1.Image = CreateCameraDisplayBitmap(liveMat);
                                 oldBmp?.Dispose();
                             }
                         }

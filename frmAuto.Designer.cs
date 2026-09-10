@@ -40,6 +40,7 @@ namespace Matric_scope
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.btnManualMeasure = new System.Windows.Forms.Button();
+            this.btnLiveCenterAxes = new System.Windows.Forms.Button();
             this.panelRightSide = new System.Windows.Forms.Panel();
             this.cmbRulesFile = new System.Windows.Forms.ComboBox();
             this.picPreview = new System.Windows.Forms.PictureBox();
@@ -310,6 +311,21 @@ namespace Matric_scope
             this.btnManualMeasure.UseVisualStyleBackColor = false;
             this.btnManualMeasure.Click += new System.EventHandler(this.btnManualMeasure_Click);
             //
+            // btnLiveCenterAxes
+            //
+            this.btnLiveCenterAxes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLiveCenterAxes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.btnLiveCenterAxes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLiveCenterAxes.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLiveCenterAxes.Location = new System.Drawing.Point(18, 466);
+            this.btnLiveCenterAxes.Name = "btnLiveCenterAxes";
+            this.btnLiveCenterAxes.Size = new System.Drawing.Size(184, 58);
+            this.btnLiveCenterAxes.TabIndex = 14;
+            this.btnLiveCenterAxes.Text = "SHOW CENTER\r\nAXES";
+            this.btnLiveCenterAxes.UseVisualStyleBackColor = false;
+            this.btnLiveCenterAxes.Click += new System.EventHandler(this.btnLiveCenterAxes_Click);
+            //
             // panelRightSide
             // 
             this.panelRightSide.BackColor = System.Drawing.Color.White;
@@ -450,6 +466,7 @@ namespace Matric_scope
             // panelLeftSide
             // 
             this.panelLeftSide.BackColor = System.Drawing.Color.White;
+            this.panelLeftSide.Controls.Add(this.btnLiveCenterAxes);
             this.panelLeftSide.Controls.Add(this.btnManualMeasure);
             this.panelLeftSide.Controls.Add(this.lblCurrentMode);
             this.panelLeftSide.Controls.Add(this.lblRatioVal);
@@ -612,6 +629,7 @@ namespace Matric_scope
         private System.Windows.Forms.Button btnTilt;
         private System.Windows.Forms.Button btnEM;
         private System.Windows.Forms.Button btnManualMeasure;
+        private System.Windows.Forms.Button btnLiveCenterAxes;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Button btnMin;
