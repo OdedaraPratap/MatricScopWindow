@@ -123,14 +123,10 @@ namespace Matric_scope
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
                 double widthVal = calcW1.DistanceTo(calcW2) * PixelToMmRatio;
 
-                try
-                {
-                    lengthVal = ApplyVariation(lengthVal, true);
-                    widthVal = ApplyVariation(widthVal, false);
-                }
-                catch
-                {
-                }
+                // Keep the runtime result identical to the value shown while the
+                // custom shape is trained. Applying the general LenVar/WidVar
+                // registry offsets here caused a second correction after the
+                // calibrated edge-to-edge distance had already been calculated.
 
                 DrawAxisWithCircleGaps(frame, calcW1, liveCenter, calcW2, Scalar.Red);
                 DrawAxisWithCircleGaps(frame, calcL1, liveCenter, calcL2, Scalar.Blue);
@@ -185,34 +181,6 @@ namespace Matric_scope
             var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
             Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
                 color, 2, LineTypes.AntiAlias);
-        }
-
-        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
-        {
-            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
-            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
-
-            // Cap it at 24 so anything 24mm or higher uses the last box
-            if (rangeIndex > 24) rangeIndex = 24;
-            if (rangeIndex < 0) rangeIndex = 0;
-
-            double variation = 0.0;
-            ModifyRegistry mr = new ModifyRegistry();
-
-            try
-            {
-                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
-                string val = mr.Read(regKey);
-
-                if (!string.IsNullOrEmpty(val))
-                {
-                    variation = Convert.ToDouble(val);
-                }
-            }
-            catch { }
-
-            // Add the variation to the original measurement
-            return rawMeasurementMM + variation;
         }
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
