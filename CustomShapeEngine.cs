@@ -63,7 +63,8 @@ namespace Matric_scope
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 frame.ImWrite("CUSTOMS.png");
                 return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
@@ -104,10 +105,6 @@ namespace Matric_scope
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
                 GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
-                // Follow the live object's actual rotation. Only quantize the
-                // detected angle; never pin it to the absolute training-screen
-                // angle, which would leave axes horizontal while the object turns.
-                liveAngle = QuantizeToQuarterDegree(liveAngle);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -115,25 +112,23 @@ namespace Matric_scope
                 Point2f calcL1 = ProjectToScreen(activeShape.LengthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
                 Point2f calcL2 = ProjectToScreen(activeShape.LengthPt2, liveCenter, liveAngle, liveSpan1, liveSpan2);
 
-                // Custom axes represent edge-to-edge dimensions. Always intersect
-                // their live, quantized directions with the current object boundary.
-                calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                // 3. Straight Ray-Cast Snapping
+                if (activeShape.SnapToEdge)
+                {
+                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
+                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
+                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
+                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                }
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
                 double widthVal = calcW1.DistanceTo(calcW2) * PixelToMmRatio;
 
-                try
-                {
-                    lengthVal = ApplyVariation(lengthVal, true);
-                    widthVal = ApplyVariation(widthVal, false);
-                }
-                catch
-                {
-                }
+                // Custom-shape measurements are already calibrated from the
+                // measured pixel distance. Do not apply the generic LenVar/WidVar
+                // offsets here; those offsets changed the values even when the
+                // projected lines matched the trained axes.
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
@@ -161,110 +156,90 @@ namespace Matric_scope
             }
         }
 
-        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
-        {
-            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
-            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
-
-            // Cap it at 24 so anything 24mm or higher uses the last box
-            if (rangeIndex > 24) rangeIndex = 24;
-            if (rangeIndex < 0) rangeIndex = 0;
-
-            double variation = 0.0;
-            ModifyRegistry mr = new ModifyRegistry();
-
-            try
-            {
-                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
-                string val = mr.Read(regKey);
-
-                if (!string.IsNullOrEmpty(val))
-                {
-                    variation = Convert.ToDouble(val);
-                }
-            }
-            catch { }
-
-            // Add the variation to the original measurement
-            return rawMeasurementMM + variation;
-        }
-
-        private static double WrapPositiveAngle(double angle)
-        {
-            while (angle < 0.0) angle += Math.PI * 2.0;
-            while (angle >= Math.PI * 2.0) angle -= Math.PI * 2.0;
-            return angle;
-        }
-
-        private static double QuantizeToQuarterDegree(double angleRadians)
-        {
-            const double quarterDegreeRadians = Math.PI / 720.0;
-            double quantized = Math.Round(angleRadians / quarterDegreeRadians) * quarterDegreeRadians;
-            return WrapPositiveAngle(quantized);
-        }
-
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
         {
-            if (hull == null || hull.Length < 3)
-            {
-                centroid = new Point2f();
-                angle = 0.0;
-                span1 = 1f;
-                span2 = 1f;
-                return;
-            }
+            Moments mu = Cv2.Moments(hull);
+            centroid = new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
 
-            // PCA cannot determine the orientation of a square: its covariance is
-            // circular, so tiny contour noise makes the axis point horizontally or
-            // vertically. A minimum-area rectangle uses the visible object edges and
-            // therefore continues to rotate with square and near-square shapes.
-            RotatedRect rectangle = Cv2.MinAreaRect(hull);
-            centroid = rectangle.Center;
-            Point2f[] corners = rectangle.Points();
-
-            double edge01 = corners[0].DistanceTo(corners[1]);
-            double edge12 = corners[1].DistanceTo(corners[2]);
-            Point2f directionStart;
-            Point2f directionEnd;
-            if (edge01 >= edge12)
+            double theta = 0.0;
+            if (Math.Abs(mu.Mu20 - mu.Mu02) < 1e-2 && Math.Abs(mu.Mu11) < 1e-2)
             {
-                directionStart = corners[0];
-                directionEnd = corners[1];
+                double maxR = 0;
+                foreach (var pt in hull)
+                {
+                    double r2 = Math.Pow(pt.X - centroid.X, 2) + Math.Pow(pt.Y - centroid.Y, 2);
+                    if (r2 > maxR) { maxR = r2; theta = Math.Atan2(pt.Y - centroid.Y, pt.X - centroid.X); }
+                }
             }
             else
             {
-                directionStart = corners[1];
-                directionEnd = corners[2];
+                theta = 0.5 * Math.Atan2(2 * mu.Mu11, mu.Mu20 - mu.Mu02);
             }
 
-            angle = Math.Atan2(directionEnd.Y - directionStart.Y,
-                directionEnd.X - directionStart.X);
-            while (angle < 0.0) angle += Math.PI;
-            while (angle >= Math.PI) angle -= Math.PI;
+            double dx = Math.Cos(theta), dy = Math.Sin(theta);
+            double nx = -dy, ny = dx;
 
-            double dx = Math.Cos(angle);
-            double dy = Math.Sin(angle);
-            double nx = -dy;
-            double ny = dx;
-            double minPrimary = double.MaxValue;
-            double maxPrimary = double.MinValue;
-            double minSecondary = double.MaxValue;
-            double maxSecondary = double.MinValue;
-
-            foreach (OpenCvSharp.Point point in hull)
+            double maxP1 = 0, minP1 = 0, maxP2 = 0, minP2 = 0;
+            foreach (var pt in hull)
             {
-                double relativeX = point.X - centroid.X;
-                double relativeY = point.Y - centroid.Y;
-                double primary = relativeX * dx + relativeY * dy;
-                double secondary = relativeX * nx + relativeY * ny;
-                minPrimary = Math.Min(minPrimary, primary);
-                maxPrimary = Math.Max(maxPrimary, primary);
-                minSecondary = Math.Min(minSecondary, secondary);
-                maxSecondary = Math.Max(maxSecondary, secondary);
+                double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
+                if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
+                if (p2 > maxP2) maxP2 = p2; if (p2 < minP2) minP2 = p2;
             }
 
-            span1 = (float)Math.Max(1.0, maxPrimary - minPrimary);
-            span2 = (float)Math.Max(1.0, maxSecondary - minSecondary);
+            double spanP1 = maxP1 - minP1;
+            double spanP2 = maxP2 - minP2;
+            double asym1 = Math.Abs(Math.Abs(maxP1) - Math.Abs(minP1));
+            double asym2 = Math.Abs(Math.Abs(maxP2) - Math.Abs(minP2));
+
+            // Lock orientation robustly
+            if (Math.Max(asym1, asym2) > 0.05 * Math.Sqrt(mu.M00))
+            {
+                if (asym2 > asym1) { theta += Math.PI / 2.0; }
+
+                // Recalculate temp bounds for new theta to verify 180 flip
+                dx = Math.Cos(theta); dy = Math.Sin(theta);
+                maxP1 = 0; minP1 = 0;
+                foreach (var pt in hull)
+                {
+                    double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                    if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
+                }
+                if (Math.Abs(minP1) > Math.Abs(maxP1)) { theta += Math.PI; }
+            }
+            else
+            {
+                if (spanP2 > spanP1) { theta += Math.PI / 2.0; }
+                double finalDx = Math.Cos(theta), finalDy = Math.Sin(theta);
+                if (finalDy > 0.001 || (Math.Abs(finalDy) <= 0.001 && finalDx < 0)) { theta += Math.PI; }
+            }
+
+            while (theta < 0) theta += 2 * Math.PI;
+            while (theta >= 2 * Math.PI) theta -= 2 * Math.PI;
+
+            // Preserve the original orientation algorithm and round only its
+            // final angle to the requested quarter-degree resolution. Both the
+            // trainer and live measurement use this same transform.
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            angle = Math.Round(theta / quarterDegreeRadians) * quarterDegreeRadians;
+            if (angle >= 2 * Math.PI) angle = 0.0;
+
+            // Finally, accurately extract the independent X and Y physical spans based on locked rotation
+            dx = Math.Cos(angle); dy = Math.Sin(angle);
+            nx = -dy; ny = dx;
+            maxP1 = 0; minP1 = 0; maxP2 = 0; minP2 = 0;
+
+            foreach (var pt in hull)
+            {
+                double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
+                double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
+                if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
+                if (p2 > maxP2) maxP2 = p2; if (p2 < minP2) minP2 = p2;
+            }
+
+            span1 = (float)(maxP1 - minP1);
+            span2 = (float)(maxP2 - minP2);
         }
 
         public static Point2f ProjectToLocal(Point2f pt, Point2f centroid, double angle, float span1, float span2)
