@@ -224,7 +224,9 @@ namespace Matric_scope
                     span2 = oldSpan1;
                 }
 
-                angle = WrapPositiveAngle(bestAngle);
+                // Use 0.25-degree orientation steps. This is more precise than
+                // whole-degree steps while filtering sub-quarter-degree jitter.
+                angle = QuantizeToQuarterDegree(WrapPositiveAngle(bestAngle));
                 stabilizedAngle = angle;
                 stabilizedShapeId = shape.Id;
                 hasStabilizedAngle = true;
@@ -243,6 +245,13 @@ namespace Matric_scope
             while (angle < 0.0) angle += Math.PI * 2.0;
             while (angle >= Math.PI * 2.0) angle -= Math.PI * 2.0;
             return angle;
+        }
+
+        private static double QuantizeToQuarterDegree(double angleRadians)
+        {
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            double quantized = Math.Round(angleRadians / quarterDegreeRadians) * quarterDegreeRadians;
+            return WrapPositiveAngle(quantized);
         }
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
