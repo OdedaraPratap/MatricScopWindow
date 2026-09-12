@@ -53,6 +53,12 @@ namespace Matric_scope
         ColorPalette cp;
         private bool isObjectPresent = false, hasMeasuredCurrentObject = false, captureFlag = false, isRenderingSnapshot = false, isSerialConnected = false;
         private bool showLiveCenterAxes = false;
+        private bool showLiveCircle = false;
+        private PointF liveCircleCenter = new PointF(0.5f, 0.5f);
+        private float liveCircleRadius = 0.2f;
+        private LiveCircleDragMode liveCircleDragMode = LiveCircleDragMode.None;
+        private PointF liveCircleDragOffset;
+        private enum LiveCircleDragMode { None, Move, Resize }
         private double liveAxisPixelsPerMillimeter = 0.0;
         private OpenCvSharp.Point lastCentroid = new OpenCvSharp.Point(0, 0);
         private int stableFrameCount = 0, thresholdValue = 25;
@@ -266,6 +272,9 @@ namespace Matric_scope
         public FrmAuto()
         {
             InitializeComponent();
+            pictureBox1.MouseDown += pictureBox1_LiveCircleMouseDown;
+            pictureBox1.MouseMove += pictureBox1_LiveCircleMouseMove;
+            pictureBox1.MouseUp += pictureBox1_LiveCircleMouseUp;
             DatabaseHelper.InitializeDatabase();
             PopulateCustomShapesMenu();
         }
@@ -311,6 +320,85 @@ namespace Matric_scope
             RefreshCameraDisplay();
         }
 
+        private void btnLiveCircle_Click(object sender, EventArgs e)
+        {
+            showLiveCircle = !showLiveCircle;
+            liveCircleDragMode = LiveCircleDragMode.None;
+            btnLiveCircle.Text = showLiveCircle ? "REMOVE LIVE CIRCLE" : "ADD LIVE CIRCLE";
+            btnLiveCircle.BackColor = showLiveCircle
+                ? Color.LightGreen
+                : Color.FromArgb(250, 182, 105);
+            RefreshCameraDisplay();
+        }
+
+        private void pictureBox1_LiveCircleMouseDown(object sender, MouseEventArgs e)
+        {
+            if (!showLiveCircle || e.Button != MouseButtons.Left || pictureBox1.Width <= 0 || pictureBox1.Height <= 0)
+                return;
+
+            PointF mouse = new PointF((float)e.X / pictureBox1.Width, (float)e.Y / pictureBox1.Height);
+            float dx = (mouse.X - liveCircleCenter.X) * pictureBox1.Width;
+            float dy = (mouse.Y - liveCircleCenter.Y) * pictureBox1.Height;
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+            float radiusPixels = liveCircleRadius * Math.Min(pictureBox1.Width, pictureBox1.Height);
+            bool onRadiusLine = dx >= 8f && dx <= radiusPixels + 12f && Math.Abs(dy) <= 10f;
+
+            if (Math.Abs(distance - radiusPixels) <= 12f || onRadiusLine)
+            {
+                liveCircleDragMode = LiveCircleDragMode.Resize;
+                pictureBox1.Cursor = Cursors.SizeNWSE;
+            }
+            else if (distance < radiusPixels)
+            {
+                liveCircleDragMode = LiveCircleDragMode.Move;
+                liveCircleDragOffset = new PointF(mouse.X - liveCircleCenter.X, mouse.Y - liveCircleCenter.Y);
+                pictureBox1.Cursor = Cursors.SizeAll;
+            }
+
+            if (liveCircleDragMode != LiveCircleDragMode.None) pictureBox1.Capture = true;
+        }
+
+        private void pictureBox1_LiveCircleMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!showLiveCircle || pictureBox1.Width <= 0 || pictureBox1.Height <= 0) return;
+
+            PointF mouse = new PointF((float)e.X / pictureBox1.Width, (float)e.Y / pictureBox1.Height);
+            if (liveCircleDragMode == LiveCircleDragMode.Move)
+            {
+                liveCircleCenter = new PointF(
+                    Math.Max(0f, Math.Min(1f, mouse.X - liveCircleDragOffset.X)),
+                    Math.Max(0f, Math.Min(1f, mouse.Y - liveCircleDragOffset.Y)));
+                RefreshCameraDisplay();
+            }
+            else if (liveCircleDragMode == LiveCircleDragMode.Resize)
+            {
+                float dx = (mouse.X - liveCircleCenter.X) * pictureBox1.Width;
+                float dy = (mouse.Y - liveCircleCenter.Y) * pictureBox1.Height;
+                liveCircleRadius = Math.Max(0.01f, (float)Math.Sqrt(dx * dx + dy * dy) /
+                    Math.Min(pictureBox1.Width, pictureBox1.Height));
+                RefreshCameraDisplay();
+            }
+            else
+            {
+                float dx = (mouse.X - liveCircleCenter.X) * pictureBox1.Width;
+                float dy = (mouse.Y - liveCircleCenter.Y) * pictureBox1.Height;
+                float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+                float radiusPixels = liveCircleRadius * Math.Min(pictureBox1.Width, pictureBox1.Height);
+                bool onRadiusLine = dx >= 8f && dx <= radiusPixels + 12f && Math.Abs(dy) <= 10f;
+                pictureBox1.Cursor = Math.Abs(distance - radiusPixels) <= 12f || onRadiusLine
+                    ? Cursors.SizeNWSE
+                    : (distance < radiusPixels ? Cursors.SizeAll : Cursors.Default);
+            }
+        }
+
+        private void pictureBox1_LiveCircleMouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            liveCircleDragMode = LiveCircleDragMode.None;
+            pictureBox1.Capture = false;
+            pictureBox1.Cursor = Cursors.Default;
+        }
+
         private void RefreshCameraDisplay()
         {
             lock (frameLock)
@@ -327,24 +415,42 @@ namespace Matric_scope
         private Bitmap CreateCameraDisplayBitmap(Mat frame)
         {
             Bitmap bitmap = BitmapConverter.ToBitmap(frame);
-            if (!showLiveCenterAxes) return bitmap;
+            if (!showLiveCenterAxes && !showLiveCircle) return bitmap;
 
             int centerX = bitmap.Width / 2;
             int centerY = bitmap.Height / 2;
 
             using (Graphics graphics = Graphics.FromImage(bitmap))
-            using (var horizontalPen = new Pen(Color.Lime, 2f))
-            using (var verticalPen = new Pen(Color.DeepSkyBlue, 2f))
             {
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                // Full-frame ruler axes. These are a visual scale only; no object
-                // is detected and no automatic object measurement is performed.
-                graphics.DrawLine(horizontalPen, 0, centerY, centerX - 6, centerY);
-                graphics.DrawLine(horizontalPen, centerX + 6, centerY, bitmap.Width - 1, centerY);
-                graphics.DrawLine(verticalPen, centerX, 0, centerX, centerY - 6);
-                graphics.DrawLine(verticalPen, centerX, centerY + 6, centerX, bitmap.Height - 1);
-                DrawCenteredRulerScale(graphics, bitmap.Size, centerX, centerY);
-                graphics.DrawEllipse(Pens.White, centerX - 5, centerY - 5, 10, 10);
+                if (showLiveCenterAxes)
+                {
+                    using (var horizontalPen = new Pen(Color.Lime, 2f))
+                    using (var verticalPen = new Pen(Color.DeepSkyBlue, 2f))
+                    {
+                        graphics.DrawLine(horizontalPen, 0, centerY, centerX - 6, centerY);
+                        graphics.DrawLine(horizontalPen, centerX + 6, centerY, bitmap.Width - 1, centerY);
+                        graphics.DrawLine(verticalPen, centerX, 0, centerX, centerY - 6);
+                        graphics.DrawLine(verticalPen, centerX, centerY + 6, centerX, bitmap.Height - 1);
+                        DrawCenteredRulerScale(graphics, bitmap.Size, centerX, centerY);
+                        graphics.DrawEllipse(Pens.White, centerX - 5, centerY - 5, 10, 10);
+                    }
+                }
+
+                if (showLiveCircle)
+                {
+                    float circleX = liveCircleCenter.X * bitmap.Width;
+                    float circleY = liveCircleCenter.Y * bitmap.Height;
+                    float radius = liveCircleRadius * Math.Min(bitmap.Width, bitmap.Height);
+                    using (var circlePen = new Pen(Color.Yellow, 2f))
+                    {
+                        graphics.DrawEllipse(circlePen, circleX - radius, circleY - radius,
+                            radius * 2f, radius * 2f);
+                        graphics.DrawLine(circlePen, circleX, circleY, circleX + radius, circleY);
+                    }
+                    graphics.DrawEllipse(Pens.White, circleX - 5f, circleY - 5f, 10f, 10f);
+                    graphics.DrawEllipse(Pens.White, circleX + radius - 5f, circleY - 5f, 10f, 10f);
+                }
             }
 
             return bitmap;
@@ -1588,6 +1694,10 @@ namespace Matric_scope
         {
             //isMeasurementStopped = true;
             currentMode = MeasurementMode.None; // Force the background state back to GeneralC
+            showLiveCircle = false;
+            liveCircleDragMode = LiveCircleDragMode.None;
+            btnLiveCircle.Text = "ADD LIVE CIRCLE";
+            btnLiveCircle.BackColor = Color.FromArgb(250, 182, 105);
 
             UpdateMeasurementUI("Auto Measurement Stopped.");
             resetCounts();
@@ -1605,6 +1715,7 @@ namespace Matric_scope
             btnGeneralC.BackgroundImage = Properties.Resources.GENERALC;
             //btnGeneralC_Click(null,null);
             picPreview.Image = null;
+            RefreshCameraDisplay();
         }
 
         private void btnTilt_Click(object sender, EventArgs e)
