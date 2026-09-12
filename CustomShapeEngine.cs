@@ -51,10 +51,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
+                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
                 }
 
                 // 4. Output Render
@@ -63,7 +61,8 @@ namespace Matric_scope
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 frame.ImWrite("CUSTOMS.png");
                 return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
@@ -114,28 +113,23 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
+                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
                 }
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
                 double widthVal = calcW1.DistanceTo(calcW2) * PixelToMmRatio;
 
-                try
-                {
-                    lengthVal = ApplyVariation(lengthVal, true);
-                    widthVal = ApplyVariation(widthVal, false);
-                }
-                catch
-                {
-                }
+                // Custom-shape measurements are already calibrated from the
+                // measured pixel distance. Do not apply the generic LenVar/WidVar
+                // offsets here; those offsets changed the values even when the
+                // projected lines matched the trained axes.
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // 5. ADD TEXT MEASUREMENTS TO THE IMAGE
@@ -158,101 +152,69 @@ namespace Matric_scope
             }
         }
 
-        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
-        {
-            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
-            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
-
-            // Cap it at 24 so anything 24mm or higher uses the last box
-            if (rangeIndex > 24) rangeIndex = 24;
-            if (rangeIndex < 0) rangeIndex = 0;
-
-            double variation = 0.0;
-            ModifyRegistry mr = new ModifyRegistry();
-
-            try
-            {
-                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
-                string val = mr.Read(regKey);
-
-                if (!string.IsNullOrEmpty(val))
-                {
-                    variation = Convert.ToDouble(val);
-                }
-            }
-            catch { }
-
-            // Add the variation to the original measurement
-            return rawMeasurementMM + variation;
-        }
-
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
         {
+            if (hull == null || hull.Length < 2)
+            {
+                centroid = new Point2f();
+                angle = 0.0;
+                span1 = 1f;
+                span2 = 1f;
+                return;
+            }
+
             Moments mu = Cv2.Moments(hull);
-            centroid = new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
-
-            double theta = 0.0;
-            if (Math.Abs(mu.Mu20 - mu.Mu02) < 1e-2 && Math.Abs(mu.Mu11) < 1e-2)
+            if (Math.Abs(mu.M00) > double.Epsilon)
             {
-                double maxR = 0;
-                foreach (var pt in hull)
-                {
-                    double r2 = Math.Pow(pt.X - centroid.X, 2) + Math.Pow(pt.Y - centroid.Y, 2);
-                    if (r2 > maxR) { maxR = r2; theta = Math.Atan2(pt.Y - centroid.Y, pt.X - centroid.X); }
-                }
+                centroid = new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
             }
             else
             {
-                theta = 0.5 * Math.Atan2(2 * mu.Mu11, mu.Mu20 - mu.Mu02);
+                centroid = new Point2f((float)hull.Average(point => point.X),
+                    (float)hull.Average(point => point.Y));
             }
 
-            double dx = Math.Cos(theta), dy = Math.Sin(theta);
+            // Use the two most distant contour points as the primary direction.
+            // For pointed custom shapes these are the two centered end points
+            // selected by the operator. Moment/covariance orientation can lean
+            // toward one curved side and make the projected red axis hit off-centre
+            // edges, as in the supplied measured image.
+            long greatestDistanceSquared = -1;
+            OpenCvSharp.Point firstEnd = hull[0];
+            OpenCvSharp.Point secondEnd = hull[1];
+            for (int first = 0; first < hull.Length - 1; first++)
+            {
+                for (int second = first + 1; second < hull.Length; second++)
+                {
+                    long deltaX = hull[second].X - hull[first].X;
+                    long deltaY = hull[second].Y - hull[first].Y;
+                    long distanceSquared = deltaX * deltaX + deltaY * deltaY;
+                    if (distanceSquared > greatestDistanceSquared)
+                    {
+                        greatestDistanceSquared = distanceSquared;
+                        firstEnd = hull[first];
+                        secondEnd = hull[second];
+                    }
+                }
+            }
+
+            double theta = Math.Atan2(secondEnd.Y - firstEnd.Y, secondEnd.X - firstEnd.X);
+            // A line has no preferred forward direction. Keeping it in [0, PI)
+            // prevents the saved local coordinates from flipping by 180 degrees.
+            while (theta < 0) theta += Math.PI;
+            while (theta >= Math.PI) theta -= Math.PI;
+
+            // Preserve the original orientation algorithm and round only its
+            // final angle to the requested quarter-degree resolution. Both the
+            // trainer and live measurement use this same transform.
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            angle = Math.Round(theta / quarterDegreeRadians) * quarterDegreeRadians;
+            if (angle >= Math.PI) angle = 0.0;
+
+            // Extract the independent physical spans in the endpoint-based frame.
+            double dx = Math.Cos(angle), dy = Math.Sin(angle);
             double nx = -dy, ny = dx;
-
             double maxP1 = 0, minP1 = 0, maxP2 = 0, minP2 = 0;
-            foreach (var pt in hull)
-            {
-                double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
-                double p2 = (pt.X - centroid.X) * nx + (pt.Y - centroid.Y) * ny;
-                if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
-                if (p2 > maxP2) maxP2 = p2; if (p2 < minP2) minP2 = p2;
-            }
-
-            double spanP1 = maxP1 - minP1;
-            double spanP2 = maxP2 - minP2;
-            double asym1 = Math.Abs(Math.Abs(maxP1) - Math.Abs(minP1));
-            double asym2 = Math.Abs(Math.Abs(maxP2) - Math.Abs(minP2));
-
-            // Lock orientation robustly
-            if (Math.Max(asym1, asym2) > 0.05 * Math.Sqrt(mu.M00))
-            {
-                if (asym2 > asym1) { theta += Math.PI / 2.0; }
-
-                // Recalculate temp bounds for new theta to verify 180 flip
-                dx = Math.Cos(theta); dy = Math.Sin(theta);
-                maxP1 = 0; minP1 = 0;
-                foreach (var pt in hull)
-                {
-                    double p1 = (pt.X - centroid.X) * dx + (pt.Y - centroid.Y) * dy;
-                    if (p1 > maxP1) maxP1 = p1; if (p1 < minP1) minP1 = p1;
-                }
-                if (Math.Abs(minP1) > Math.Abs(maxP1)) { theta += Math.PI; }
-            }
-            else
-            {
-                if (spanP2 > spanP1) { theta += Math.PI / 2.0; }
-                double finalDx = Math.Cos(theta), finalDy = Math.Sin(theta);
-                if (finalDy > 0.001 || (Math.Abs(finalDy) <= 0.001 && finalDx < 0)) { theta += Math.PI; }
-            }
-
-            while (theta < 0) theta += 2 * Math.PI;
-            while (theta >= 2 * Math.PI) theta -= 2 * Math.PI;
-            angle = theta;
-
-            // Finally, accurately extract the independent X and Y physical spans based on locked rotation
-            dx = Math.Cos(angle); dy = Math.Sin(angle);
-            nx = -dy; ny = dx;
-            maxP1 = 0; minP1 = 0; maxP2 = 0; minP2 = 0;
 
             foreach (var pt in hull)
             {
@@ -316,6 +278,29 @@ namespace Matric_scope
             }
 
             return targetPt;
+        }
+
+        private void SnapLineToEdges(ref Point2f first, ref Point2f second, OpenCvSharp.Point[] contour)
+        {
+            Point2f midpoint = new Point2f((first.X + second.X) / 2f, (first.Y + second.Y) / 2f);
+            float directionX = second.X - first.X;
+            float directionY = second.Y - first.Y;
+            float length = (float)Math.Sqrt(directionX * directionX + directionY * directionY);
+            if (length < 0.001f) return;
+
+            // Extend each half of the trained line from its own midpoint. Using
+            // the object centroid here would pull an intentionally offset line
+            // back through the centre and change what the operator trained.
+            Point2f forwardTarget = new Point2f(midpoint.X + directionX / length,
+                midpoint.Y + directionY / length);
+            Point2f backwardTarget = new Point2f(midpoint.X - directionX / length,
+                midpoint.Y - directionY / length);
+
+            if (Cv2.PointPolygonTest(contour, midpoint, false) >= 0)
+            {
+                second = SnapToEdgeStraight(midpoint, forwardTarget, contour);
+                first = SnapToEdgeStraight(midpoint, backwardTarget, contour);
+            }
         }
     }
 }
