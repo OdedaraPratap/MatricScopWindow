@@ -182,12 +182,12 @@ namespace Matric_scope
 
             btnSetWidth.Click += (s, e) => {
                 currentState = ClickState.Width;
-                lblStatus.Text = "Drag from the centroid to set WIDTH, or drag either red endpoint.";
+                lblStatus.Text = "Drag anywhere from one edge to the other to set WIDTH.";
                 pictureBox.Cursor = precisionCursor;
             };
             btnSetLength.Click += (s, e) => {
                 currentState = ClickState.Length;
-                lblStatus.Text = "Drag from the centroid to set LENGTH, or drag either blue endpoint.";
+                lblStatus.Text = "Drag anywhere from one edge to the other to set LENGTH.";
                 pictureBox.Cursor = precisionCursor;
             };
 
@@ -273,17 +273,19 @@ namespace Matric_scope
 
                     if (activeHandle == DragHandle.None && currentState != ClickState.None)
                     {
-                        // One click-drag defines a complete axis. The opposite end
-                        // is mirrored through the detected centroid automatically.
+                        // Start a free line at the pressed point. It does not have
+                        // to cross the detected centroid.
                         if (currentState == ClickState.Width)
                         {
+                            wPt1 = imgPt;
+                            wPt2 = imgPt;
                             activeHandle = DragHandle.WidthPoint2;
-                            SetSymmetricEndpoint(activeHandle, imgPt);
                         }
                         else
                         {
+                            lPt1 = imgPt;
+                            lPt2 = imgPt;
                             activeHandle = DragHandle.LengthPoint2;
-                            SetSymmetricEndpoint(activeHandle, imgPt);
                         }
                     }
 
@@ -291,7 +293,7 @@ namespace Matric_scope
                     {
                         pictureBox.Capture = true;
                         pictureBox.Cursor = Cursors.SizeAll;
-                        SetSymmetricEndpoint(activeHandle, imgPt);
+                        SetEndpoint(activeHandle, imgPt);
                         UpdateCustomMeasurementStatus();
                         RedrawOverlay();
                     }
@@ -311,7 +313,7 @@ namespace Matric_scope
             else if (activeHandle != DragHandle.None)
             {
                 Point2f imgPt = ClampToSource(MapScreenToImageCoordinates(e.Location));
-                SetSymmetricEndpoint(activeHandle, imgPt);
+                SetEndpoint(activeHandle, imgPt);
                 UpdateCustomMeasurementStatus();
                 RedrawOverlay();
                 // MouseMove can fire faster than normal invalidated paints. Force
@@ -436,45 +438,25 @@ namespace Matric_scope
                 Math.Max(0f, Math.Min(sourceFrame.Height - 1f, point.Y)));
         }
 
-        private void SetSymmetricEndpoint(DragHandle handle, Point2f draggedPoint)
+        private void SetEndpoint(DragHandle handle, Point2f draggedPoint)
         {
             draggedPoint = ClampToSource(draggedPoint);
-            float dx = draggedPoint.X - centroid.X;
-            float dy = draggedPoint.Y - centroid.Y;
-            float scale = Math.Min(SymmetricAxisScale(centroid.X, dx, sourceFrame.Width - 1f),
-                SymmetricAxisScale(centroid.Y, dy, sourceFrame.Height - 1f));
-            draggedPoint = new Point2f(centroid.X + dx * scale, centroid.Y + dy * scale);
-            Point2f opposite = new Point2f(centroid.X - dx * scale, centroid.Y - dy * scale);
 
             switch (handle)
             {
                 case DragHandle.WidthPoint1:
                     wPt1 = draggedPoint;
-                    wPt2 = opposite;
                     break;
                 case DragHandle.WidthPoint2:
                     wPt2 = draggedPoint;
-                    wPt1 = opposite;
                     break;
                 case DragHandle.LengthPoint1:
                     lPt1 = draggedPoint;
-                    lPt2 = opposite;
                     break;
                 case DragHandle.LengthPoint2:
                     lPt2 = draggedPoint;
-                    lPt1 = opposite;
                     break;
             }
-        }
-
-        private static float SymmetricAxisScale(float center, float delta, float maximum)
-        {
-            if (Math.Abs(delta) < 0.0001f) return 1f;
-
-            float forwardRoom = delta > 0f ? maximum - center : center;
-            float oppositeRoom = delta > 0f ? center : maximum - center;
-            float required = Math.Abs(delta);
-            return Math.Min(1f, Math.Min(forwardRoom / required, oppositeRoom / required));
         }
 
         private void UpdateCustomMeasurementStatus()
@@ -497,13 +479,13 @@ namespace Matric_scope
             // Draw the width axis; its live value is rendered in screen space.
             if (wPt1.HasValue && wPt2.HasValue)
             {
-                DrawAxisWithCircleGaps(displayFrame, wPt1.Value, centroid, wPt2.Value, Scalar.Red, handleRadiusInImage);
+                DrawSegmentOutsideCircles(displayFrame, wPt1.Value, wPt2.Value, Scalar.Red, handleRadiusInImage);
             }
 
             // Draw the length axis; its live value is rendered in screen space.
             if (lPt1.HasValue && lPt2.HasValue)
             {
-                DrawAxisWithCircleGaps(displayFrame, lPt1.Value, centroid, lPt2.Value, Scalar.Blue, handleRadiusInImage);
+                DrawSegmentOutsideCircles(displayFrame, lPt1.Value, lPt2.Value, Scalar.Blue, handleRadiusInImage);
             }
 
             Bitmap oldBmp = pictureBox.Image as Bitmap;
@@ -517,12 +499,6 @@ namespace Matric_scope
             Rectangle targetRect = GetAspectFitRectangle();
             float displayScale = (float)targetRect.Width / sourceFrame.Width * zoomFactor;
             return displayScale > 0f ? screenRadius / displayScale : screenRadius;
-        }
-
-        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center, Point2f second, Scalar color, float radius)
-        {
-            DrawSegmentOutsideCircles(frame, first, center, color, radius);
-            DrawSegmentOutsideCircles(frame, center, second, color, radius);
         }
 
         private static void DrawSegmentOutsideCircles(Mat frame, Point2f start, Point2f end, Scalar color, float radius)

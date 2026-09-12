@@ -51,10 +51,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
+                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
                 }
 
                 // 4. Output Render
@@ -115,10 +113,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
+                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
                 }
 
                 // 4. Output Render
@@ -282,6 +278,29 @@ namespace Matric_scope
             }
 
             return targetPt;
+        }
+
+        private void SnapLineToEdges(ref Point2f first, ref Point2f second, OpenCvSharp.Point[] contour)
+        {
+            Point2f midpoint = new Point2f((first.X + second.X) / 2f, (first.Y + second.Y) / 2f);
+            float directionX = second.X - first.X;
+            float directionY = second.Y - first.Y;
+            float length = (float)Math.Sqrt(directionX * directionX + directionY * directionY);
+            if (length < 0.001f) return;
+
+            // Extend each half of the trained line from its own midpoint. Using
+            // the object centroid here would pull an intentionally offset line
+            // back through the centre and change what the operator trained.
+            Point2f forwardTarget = new Point2f(midpoint.X + directionX / length,
+                midpoint.Y + directionY / length);
+            Point2f backwardTarget = new Point2f(midpoint.X - directionX / length,
+                midpoint.Y - directionY / length);
+
+            if (Cv2.PointPolygonTest(contour, midpoint, false) >= 0)
+            {
+                second = SnapToEdgeStraight(midpoint, forwardTarget, contour);
+                first = SnapToEdgeStraight(midpoint, backwardTarget, contour);
+            }
         }
     }
 }
