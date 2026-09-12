@@ -326,6 +326,13 @@ namespace Matric_scope
 
         private void btnLiveCircle_Click(object sender, EventArgs e)
         {
+            if (liveAxisPixelsPerMillimeter <= 0.0)
+            {
+                string ppmValue = mr.Read("ppm");
+                double.TryParse(ppmValue, out liveAxisPixelsPerMillimeter);
+                if (liveAxisPixelsPerMillimeter < 0.0) liveAxisPixelsPerMillimeter = 0.0;
+            }
+
             // Offset each new circle slightly so the operator can see and select
             // it even when several circles are added before any are moved.
             int offsetStep = liveCircles.Count % 6;
@@ -473,10 +480,30 @@ namespace Matric_scope
                     }
                     graphics.DrawEllipse(Pens.White, circleX - 5f, circleY - 5f, 10f, 10f);
                     graphics.DrawEllipse(Pens.White, circleX + radius - 5f, circleY - 5f, 10f, 10f);
+                    DrawLiveCircleRadius(graphics, circleX, circleY, radius);
                 }
             }
 
             return bitmap;
+        }
+
+        private void DrawLiveCircleRadius(Graphics graphics, float centerX, float centerY, float radiusPixels)
+        {
+            string radiusText = liveAxisPixelsPerMillimeter > 0.0
+                ? string.Format("R {0:F2} mm", radiusPixels / liveAxisPixelsPerMillimeter)
+                : string.Format("R {0:F1} px", radiusPixels);
+
+            using (var font = new Font("Microsoft Sans Serif", 10f, FontStyle.Bold))
+            using (var textBrush = new SolidBrush(Color.Yellow))
+            using (var backgroundBrush = new SolidBrush(Color.FromArgb(190, Color.Black)))
+            {
+                SizeF textSize = graphics.MeasureString(radiusText, font);
+                float textX = centerX + radiusPixels / 2f - textSize.Width / 2f;
+                float textY = centerY - textSize.Height - 7f;
+                graphics.FillRectangle(backgroundBrush, textX - 3f, textY - 2f,
+                    textSize.Width + 6f, textSize.Height + 4f);
+                graphics.DrawString(radiusText, font, textBrush, textX, textY);
+            }
         }
 
         private void DrawCenteredRulerScale(Graphics graphics, System.Drawing.Size frameSize, int centerX, int centerY)
