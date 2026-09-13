@@ -52,8 +52,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
-                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
+                    SnapMeasurementAxes(activeShape.TransformMode, liveCenter, liveHull,
+                        ref calcW1, ref calcW2, ref calcL1, ref calcL2);
                 }
 
                 // 4. Output Render
@@ -115,8 +115,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    SnapLineToEdges(ref calcW1, ref calcW2, liveHull);
-                    SnapLineToEdges(ref calcL1, ref calcL2, liveHull);
+                    SnapMeasurementAxes(activeShape.TransformMode, liveCenter, liveHull,
+                        ref calcW1, ref calcW2, ref calcL1, ref calcL2);
                 }
 
                 // 4. Output Render
@@ -389,6 +389,27 @@ namespace Matric_scope
                 second = SnapToEdgeStraight(midpoint, forwardTarget, contour);
                 first = SnapToEdgeStraight(midpoint, backwardTarget, contour);
             }
+        }
+
+        private void SnapMeasurementAxes(ShapeTransformMode transformMode, Point2f centroid,
+            OpenCvSharp.Point[] contour, ref Point2f widthPoint1, ref Point2f widthPoint2,
+            ref Point2f lengthPoint1, ref Point2f lengthPoint2)
+        {
+            if (transformMode == ShapeTransformMode.Centroid)
+            {
+                // Preserve the original centroid workflow: every endpoint is a
+                // ray from the detected center to the contour boundary.
+                widthPoint1 = SnapToEdgeStraight(centroid, widthPoint1, contour);
+                widthPoint2 = SnapToEdgeStraight(centroid, widthPoint2, contour);
+                lengthPoint1 = SnapToEdgeStraight(centroid, lengthPoint1, contour);
+                lengthPoint2 = SnapToEdgeStraight(centroid, lengthPoint2, contour);
+                return;
+            }
+
+            // Tapered profiles may contain deliberately offset axes, so extend
+            // each complete line without pulling it through the centroid.
+            SnapLineToEdges(ref widthPoint1, ref widthPoint2, contour);
+            SnapLineToEdges(ref lengthPoint1, ref lengthPoint2, contour);
         }
     }
 }
