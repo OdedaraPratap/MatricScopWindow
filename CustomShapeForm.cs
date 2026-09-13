@@ -27,8 +27,6 @@ namespace Matric_scope
         private Mat bgFrame;
 
         private Point2f centroid;
-        private float baseAngle;
-        private Size2f refBoxSize;
 
         private Point2f? wPt1 = null, wPt2 = null;
         private Point2f? lPt1 = null, lPt2 = null;
@@ -192,13 +190,27 @@ namespace Matric_scope
 
             btnSetWidth.Click += (s, e) => {
                 currentState = ClickState.Width;
-                lblStatus.Text = "Drag anywhere from one edge to the other to set WIDTH.";
+                lblStatus.Text = IsCentroidMode
+                    ? "Drag from the centroid: WIDTH is mirrored automatically."
+                    : "Drag anywhere from one edge to the other to set WIDTH.";
                 pictureBox.Cursor = precisionCursor;
             };
             btnSetLength.Click += (s, e) => {
                 currentState = ClickState.Length;
-                lblStatus.Text = "Drag anywhere from one edge to the other to set LENGTH.";
+                lblStatus.Text = IsCentroidMode
+                    ? "Drag from the centroid: LENGTH is mirrored automatically."
+                    : "Drag anywhere from one edge to the other to set LENGTH.";
                 pictureBox.Cursor = precisionCursor;
+            };
+            cmbTransformMode.SelectedIndexChanged += (s, e) =>
+            {
+                wPt1 = wPt2 = lPt1 = lPt2 = null;
+                currentState = ClickState.None;
+                DetectBaseOrientation();
+                lblStatus.Text = IsCentroidMode
+                    ? "Centroid mode: each endpoint is mirrored through the center."
+                    : "Tapered mode: draw two independent edge-to-edge lines.";
+                RedrawOverlay();
             };
 
             btnResetZoom.Click += (s, e) => { ResetZoomAndPan(); };
@@ -228,17 +240,16 @@ namespace Matric_scope
                 if (largest != null)
                 {
                     var hull = Cv2.ConvexHull(largest);
-                    RotatedRect box = Cv2.MinAreaRect(hull);
-                    centroid = box.Center;
-                    baseAngle = box.Angle;
-                    refBoxSize = box.Size;
+                    ShapeTransformMode transformMode = IsCentroidMode
+                        ? ShapeTransformMode.Centroid
+                        : ShapeTransformMode.TaperedLongestEdge;
+                    CustomShapeEngine.GetInvariantTransform(hull, transformMode, out centroid,
+                        out _, out _, out _);
                 }
                 else
                 {
                     MessageBox.Show("Vision Error: Stone contour not detected.", "Vision Warning");
                     centroid = new Point2f(sourceFrame.Width / 2f, sourceFrame.Height / 2f);
-                    baseAngle = 0f;
-                    refBoxSize = new Size2f(100, 100);
                 }
             }
         }
@@ -283,19 +294,31 @@ namespace Matric_scope
 
                     if (activeHandle == DragHandle.None && currentState != ClickState.None)
                     {
-                        // Start a free line at the pressed point. It does not have
-                        // to cross the detected centroid.
                         if (currentState == ClickState.Width)
                         {
-                            wPt1 = imgPt;
-                            wPt2 = imgPt;
                             activeHandle = DragHandle.WidthPoint2;
+                            if (IsCentroidMode)
+                            {
+                                SetMeasurementEndpoint(activeHandle, imgPt);
+                            }
+                            else
+                            {
+                                wPt1 = imgPt;
+                                wPt2 = imgPt;
+                            }
                         }
                         else
                         {
-                            lPt1 = imgPt;
-                            lPt2 = imgPt;
                             activeHandle = DragHandle.LengthPoint2;
+                            if (IsCentroidMode)
+                            {
+                                SetMeasurementEndpoint(activeHandle, imgPt);
+                            }
+                            else
+                            {
+                                lPt1 = imgPt;
+                                lPt2 = imgPt;
+                            }
                         }
                     }
 
@@ -303,7 +326,7 @@ namespace Matric_scope
                     {
                         pictureBox.Capture = true;
                         pictureBox.Cursor = Cursors.SizeAll;
-                        SetEndpoint(activeHandle, imgPt);
+                        SetMeasurementEndpoint(activeHandle, imgPt);
                         UpdateCustomMeasurementStatus();
                         RedrawOverlay();
                     }
@@ -323,7 +346,7 @@ namespace Matric_scope
             else if (activeHandle != DragHandle.None)
             {
                 Point2f imgPt = ClampToSource(MapScreenToImageCoordinates(e.Location));
-                SetEndpoint(activeHandle, imgPt);
+                SetMeasurementEndpoint(activeHandle, imgPt);
                 UpdateCustomMeasurementStatus();
                 RedrawOverlay();
                 // MouseMove can fire faster than normal invalidated paints. Force
@@ -448,9 +471,17 @@ namespace Matric_scope
                 Math.Max(0f, Math.Min(sourceFrame.Height - 1f, point.Y)));
         }
 
-        private void SetEndpoint(DragHandle handle, Point2f draggedPoint)
+        private bool IsCentroidMode => cmbTransformMode == null || cmbTransformMode.SelectedIndex == 0;
+
+        private void SetMeasurementEndpoint(DragHandle handle, Point2f draggedPoint)
         {
             draggedPoint = ClampToSource(draggedPoint);
+
+            if (IsCentroidMode)
+            {
+                SetSymmetricEndpoint(handle, draggedPoint);
+                return;
+            }
 
             switch (handle)
             {
@@ -467,6 +498,32 @@ namespace Matric_scope
                     lPt2 = draggedPoint;
                     break;
             }
+        }
+
+        private void SetSymmetricEndpoint(DragHandle handle, Point2f draggedPoint)
+        {
+            float deltaX = draggedPoint.X - centroid.X;
+            float deltaY = draggedPoint.Y - centroid.Y;
+            float scale = Math.Min(SymmetricAxisScale(centroid.X, deltaX, sourceFrame.Width - 1f),
+                SymmetricAxisScale(centroid.Y, deltaY, sourceFrame.Height - 1f));
+            Point2f selected = new Point2f(centroid.X + deltaX * scale, centroid.Y + deltaY * scale);
+            Point2f opposite = new Point2f(centroid.X - deltaX * scale, centroid.Y - deltaY * scale);
+
+            switch (handle)
+            {
+                case DragHandle.WidthPoint1: wPt1 = selected; wPt2 = opposite; break;
+                case DragHandle.WidthPoint2: wPt2 = selected; wPt1 = opposite; break;
+                case DragHandle.LengthPoint1: lPt1 = selected; lPt2 = opposite; break;
+                case DragHandle.LengthPoint2: lPt2 = selected; lPt1 = opposite; break;
+            }
+        }
+
+        private static float SymmetricAxisScale(float center, float delta, float maximum)
+        {
+            if (Math.Abs(delta) < 0.0001f) return 1f;
+            float forwardRoom = delta > 0f ? maximum - center : center;
+            float oppositeRoom = delta > 0f ? center : maximum - center;
+            return Math.Min(1f, Math.Min(forwardRoom, oppositeRoom) / Math.Abs(delta));
         }
 
         private void UpdateCustomMeasurementStatus()
@@ -489,13 +546,19 @@ namespace Matric_scope
             // Draw the width axis; its live value is rendered in screen space.
             if (wPt1.HasValue && wPt2.HasValue)
             {
-                DrawSegmentOutsideCircles(displayFrame, wPt1.Value, wPt2.Value, Scalar.Red, handleRadiusInImage);
+                if (IsCentroidMode)
+                    DrawAxisWithCircleGaps(displayFrame, wPt1.Value, centroid, wPt2.Value, Scalar.Red, handleRadiusInImage);
+                else
+                    DrawSegmentOutsideCircles(displayFrame, wPt1.Value, wPt2.Value, Scalar.Red, handleRadiusInImage);
             }
 
             // Draw the length axis; its live value is rendered in screen space.
             if (lPt1.HasValue && lPt2.HasValue)
             {
-                DrawSegmentOutsideCircles(displayFrame, lPt1.Value, lPt2.Value, Scalar.Blue, handleRadiusInImage);
+                if (IsCentroidMode)
+                    DrawAxisWithCircleGaps(displayFrame, lPt1.Value, centroid, lPt2.Value, Scalar.Blue, handleRadiusInImage);
+                else
+                    DrawSegmentOutsideCircles(displayFrame, lPt1.Value, lPt2.Value, Scalar.Blue, handleRadiusInImage);
             }
 
             Bitmap oldBmp = pictureBox.Image as Bitmap;
@@ -524,6 +587,13 @@ namespace Matric_scope
             var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
             Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
                 color, 2, LineTypes.AntiAlias);
+        }
+
+        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center,
+            Point2f second, Scalar color, float radius)
+        {
+            DrawSegmentOutsideCircles(frame, first, center, color, radius);
+            DrawSegmentOutsideCircles(frame, center, second, color, radius);
         }
 
         private void DrawEditableHandles(Graphics graphics)
