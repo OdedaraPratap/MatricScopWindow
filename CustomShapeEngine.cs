@@ -40,7 +40,8 @@ namespace Matric_scope
                 var liveHull = Cv2.ConvexHull(largestContour);
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
-                GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                GetInvariantTransform(liveHull, activeShape.TransformMode, out Point2f liveCenter,
+                    out double liveAngle, out float liveSpan1, out float liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -51,10 +52,8 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapMeasurementAxes(activeShape.TransformMode, liveCenter, liveHull,
+                        ref calcW1, ref calcW2, ref calcL1, ref calcL2);
                 }
 
                 // 4. Output Render
@@ -63,7 +62,8 @@ namespace Matric_scope
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 frame.ImWrite("CUSTOMS.png");
                 return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
@@ -103,7 +103,8 @@ namespace Matric_scope
                 var liveHull = Cv2.ConvexHull(largestContour);
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
-                GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                GetInvariantTransform(liveHull, activeShape.TransformMode, out Point2f liveCenter,
+                    out double liveAngle, out float liveSpan1, out float liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -114,28 +115,23 @@ namespace Matric_scope
                 // 3. Straight Ray-Cast Snapping
                 if (activeShape.SnapToEdge)
                 {
-                    calcW1 = SnapToEdgeStraight(liveCenter, calcW1, liveHull);
-                    calcW2 = SnapToEdgeStraight(liveCenter, calcW2, liveHull);
-                    calcL1 = SnapToEdgeStraight(liveCenter, calcL1, liveHull);
-                    calcL2 = SnapToEdgeStraight(liveCenter, calcL2, liveHull);
+                    SnapMeasurementAxes(activeShape.TransformMode, liveCenter, liveHull,
+                        ref calcW1, ref calcW2, ref calcL1, ref calcL2);
                 }
 
                 // 4. Output Render
                 double lengthVal = calcL1.DistanceTo(calcL2) * PixelToMmRatio;
                 double widthVal = calcW1.DistanceTo(calcW2) * PixelToMmRatio;
 
-                try
-                {
-                    lengthVal = ApplyVariation(lengthVal, true);
-                    widthVal = ApplyVariation(widthVal, false);
-                }
-                catch
-                {
-                }
+                // Custom-shape measurements are already calibrated from the
+                // measured pixel distance. Do not apply the generic LenVar/WidVar
+                // offsets here; those offsets changed the values even when the
+                // projected lines matched the trained axes.
 
                 Cv2.Line(frame, (OpenCvSharp.Point)calcW1, (OpenCvSharp.Point)calcW2, Scalar.Red, 2);
                 Cv2.Line(frame, (OpenCvSharp.Point)calcL1, (OpenCvSharp.Point)calcL2, Scalar.Blue, 2);
-                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y), 4, Scalar.Green, -1);
+                Cv2.Circle(frame, new OpenCvSharp.Point((int)liveCenter.X, (int)liveCenter.Y),
+                    5, Scalar.White, 1, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // 5. ADD TEXT MEASUREMENTS TO THE IMAGE
@@ -156,34 +152,6 @@ namespace Matric_scope
                 frame.ImWrite("CUSTOMS.png");
                 return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
             }
-        }
-
-        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
-        {
-            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
-            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
-
-            // Cap it at 24 so anything 24mm or higher uses the last box
-            if (rangeIndex > 24) rangeIndex = 24;
-            if (rangeIndex < 0) rangeIndex = 0;
-
-            double variation = 0.0;
-            ModifyRegistry mr = new ModifyRegistry();
-
-            try
-            {
-                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
-                string val = mr.Read(regKey);
-
-                if (!string.IsNullOrEmpty(val))
-                {
-                    variation = Convert.ToDouble(val);
-                }
-            }
-            catch { }
-
-            // Add the variation to the original measurement
-            return rawMeasurementMM + variation;
         }
 
         public static void GetInvariantTransform(OpenCvSharp.Point[] hull, out Point2f centroid, out double angle, out float span1, out float span2)
@@ -247,7 +215,13 @@ namespace Matric_scope
 
             while (theta < 0) theta += 2 * Math.PI;
             while (theta >= 2 * Math.PI) theta -= 2 * Math.PI;
-            angle = theta;
+
+            // Use the original contour-moment frame. Unlike the farthest-point
+            // diagonal, this frame does not jump to another corner pair when an
+            // asymmetric custom shape rotates. Round only the final result.
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            angle = Math.Round(theta / quarterDegreeRadians) * quarterDegreeRadians;
+            if (angle >= 2 * Math.PI) angle = 0.0;
 
             // Finally, accurately extract the independent X and Y physical spans based on locked rotation
             dx = Math.Cos(angle); dy = Math.Sin(angle);
@@ -264,6 +238,82 @@ namespace Matric_scope
 
             span1 = (float)(maxP1 - minP1);
             span2 = (float)(maxP2 - minP2);
+        }
+
+        public static void GetInvariantTransform(OpenCvSharp.Point[] hull, ShapeTransformMode transformMode,
+            out Point2f centroid, out double angle, out float span1, out float span2)
+        {
+            if (transformMode == ShapeTransformMode.TaperedLongestEdge)
+            {
+                GetTaperedTransform(hull, out centroid, out angle, out span1, out span2);
+                return;
+            }
+
+            GetInvariantTransform(hull, out centroid, out angle, out span1, out span2);
+        }
+
+        private static void GetTaperedTransform(OpenCvSharp.Point[] hull, out Point2f centroid,
+            out double angle, out float span1, out float span2)
+        {
+            if (hull == null || hull.Length < 2)
+            {
+                centroid = new Point2f();
+                angle = 0.0;
+                span1 = span2 = 1f;
+                return;
+            }
+
+            Moments moments = Cv2.Moments(hull);
+            centroid = Math.Abs(moments.M00) > double.Epsilon
+                ? new Point2f((float)(moments.M10 / moments.M00), (float)(moments.M01 / moments.M00))
+                : new Point2f((float)hull.Average(point => point.X), (float)hull.Average(point => point.Y));
+
+            // A tapered/trapezoidal shape is anchored by its longest boundary
+            // edge. Unlike a longest point-to-point diagonal, this selects the
+            // trained base edge and remains on that parallel axis after rotation.
+            long longestEdgeSquared = -1;
+            OpenCvSharp.Point edgeStart = hull[0];
+            OpenCvSharp.Point edgeEnd = hull[1];
+            for (int index = 0; index < hull.Length; index++)
+            {
+                OpenCvSharp.Point first = hull[index];
+                OpenCvSharp.Point second = hull[(index + 1) % hull.Length];
+                long deltaX = second.X - first.X;
+                long deltaY = second.Y - first.Y;
+                long edgeSquared = deltaX * deltaX + deltaY * deltaY;
+                if (edgeSquared > longestEdgeSquared)
+                {
+                    longestEdgeSquared = edgeSquared;
+                    edgeStart = first;
+                    edgeEnd = second;
+                }
+            }
+
+            double theta = Math.Atan2(edgeEnd.Y - edgeStart.Y, edgeEnd.X - edgeStart.X);
+            while (theta < 0.0) theta += Math.PI;
+            while (theta >= Math.PI) theta -= Math.PI;
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            angle = Math.Round(theta / quarterDegreeRadians) * quarterDegreeRadians;
+            if (angle >= Math.PI) angle = 0.0;
+
+            double axisX = Math.Cos(angle), axisY = Math.Sin(angle);
+            double normalX = -axisY, normalY = axisX;
+            double minAxis = double.MaxValue, maxAxis = double.MinValue;
+            double minNormal = double.MaxValue, maxNormal = double.MinValue;
+            foreach (OpenCvSharp.Point point in hull)
+            {
+                double relativeX = point.X - centroid.X;
+                double relativeY = point.Y - centroid.Y;
+                double axisProjection = relativeX * axisX + relativeY * axisY;
+                double normalProjection = relativeX * normalX + relativeY * normalY;
+                minAxis = Math.Min(minAxis, axisProjection);
+                maxAxis = Math.Max(maxAxis, axisProjection);
+                minNormal = Math.Min(minNormal, normalProjection);
+                maxNormal = Math.Max(maxNormal, normalProjection);
+            }
+
+            span1 = (float)Math.Max(1.0, maxAxis - minAxis);
+            span2 = (float)Math.Max(1.0, maxNormal - minNormal);
         }
 
         public static Point2f ProjectToLocal(Point2f pt, Point2f centroid, double angle, float span1, float span2)
@@ -316,6 +366,50 @@ namespace Matric_scope
             }
 
             return targetPt;
+        }
+
+        private void SnapLineToEdges(ref Point2f first, ref Point2f second, OpenCvSharp.Point[] contour)
+        {
+            Point2f midpoint = new Point2f((first.X + second.X) / 2f, (first.Y + second.Y) / 2f);
+            float directionX = second.X - first.X;
+            float directionY = second.Y - first.Y;
+            float length = (float)Math.Sqrt(directionX * directionX + directionY * directionY);
+            if (length < 0.001f) return;
+
+            // Extend each half of the trained line from its own midpoint. Using
+            // the object centroid here would pull an intentionally offset line
+            // back through the centre and change what the operator trained.
+            Point2f forwardTarget = new Point2f(midpoint.X + directionX / length,
+                midpoint.Y + directionY / length);
+            Point2f backwardTarget = new Point2f(midpoint.X - directionX / length,
+                midpoint.Y - directionY / length);
+
+            if (Cv2.PointPolygonTest(contour, midpoint, false) >= 0)
+            {
+                second = SnapToEdgeStraight(midpoint, forwardTarget, contour);
+                first = SnapToEdgeStraight(midpoint, backwardTarget, contour);
+            }
+        }
+
+        private void SnapMeasurementAxes(ShapeTransformMode transformMode, Point2f centroid,
+            OpenCvSharp.Point[] contour, ref Point2f widthPoint1, ref Point2f widthPoint2,
+            ref Point2f lengthPoint1, ref Point2f lengthPoint2)
+        {
+            if (transformMode == ShapeTransformMode.Centroid)
+            {
+                // Preserve the original centroid workflow: every endpoint is a
+                // ray from the detected center to the contour boundary.
+                widthPoint1 = SnapToEdgeStraight(centroid, widthPoint1, contour);
+                widthPoint2 = SnapToEdgeStraight(centroid, widthPoint2, contour);
+                lengthPoint1 = SnapToEdgeStraight(centroid, lengthPoint1, contour);
+                lengthPoint2 = SnapToEdgeStraight(centroid, lengthPoint2, contour);
+                return;
+            }
+
+            // Tapered profiles may contain deliberately offset axes, so extend
+            // each complete line without pulling it through the centroid.
+            SnapLineToEdges(ref widthPoint1, ref widthPoint2, contour);
+            SnapLineToEdges(ref lengthPoint1, ref lengthPoint2, contour);
         }
     }
 }

@@ -19,6 +19,7 @@ namespace Matric_scope
         private Button btnResetZoom;
         private Button btnSave;
         private CheckBox chkSnapToEdge;
+        private ComboBox cmbTransformMode;
         private Label lblStatus;
 
         private Mat sourceFrame;
@@ -26,14 +27,15 @@ namespace Matric_scope
         private Mat bgFrame;
 
         private Point2f centroid;
-        private float baseAngle;
-        private Size2f refBoxSize;
 
         private Point2f? wPt1 = null, wPt2 = null;
         private Point2f? lPt1 = null, lPt2 = null;
 
         private enum ClickState { None, Width, Length }
         private ClickState currentState = ClickState.None;
+
+        private enum DragHandle { None, WidthPoint1, WidthPoint2, LengthPoint1, LengthPoint2 }
+        private DragHandle activeHandle = DragHandle.None;
 
         private float zoomFactor = 1.0f;
         private const float MIN_ZOOM = 1.0f;
@@ -143,9 +145,9 @@ namespace Matric_scope
             this.Size = new System.Drawing.Size(1100, 720);
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            Panel panel = new Panel { Dock = DockStyle.Top, Height = 55 };
-            btnSetWidth = new Button { Text = "1. Set Width (2 Clicks)", Location = new System.Drawing.Point(10, 12), Size = new System.Drawing.Size(140, 30) };
-            btnSetLength = new Button { Text = "2. Set Length (2 Clicks)", Location = new System.Drawing.Point(160, 12), Size = new System.Drawing.Size(140, 30) };
+            Panel panel = new Panel { Dock = DockStyle.Top, Height = 82 };
+            btnSetWidth = new Button { Text = "1. Set Width (Drag)", Location = new System.Drawing.Point(10, 12), Size = new System.Drawing.Size(140, 30) };
+            btnSetLength = new Button { Text = "2. Set Length (Drag)", Location = new System.Drawing.Point(160, 12), Size = new System.Drawing.Size(140, 30) };
 
             chkSnapToEdge = new CheckBox
             {
@@ -157,9 +159,18 @@ namespace Matric_scope
 
             btnResetZoom = new Button { Text = "Reset Zoom", Location = new System.Drawing.Point(430, 12), Size = new System.Drawing.Size(95, 30) };
             btnSave = new Button { Text = "3. Save Shape", Location = new System.Drawing.Point(535, 12), Size = new System.Drawing.Size(105, 30) };
-            lblStatus = new Label { Text = "Status: Select Width or Length mode.", Location = new System.Drawing.Point(650, 17), Size = new System.Drawing.Size(420, 20) };
+            cmbTransformMode = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new System.Drawing.Point(650, 14),
+                Size = new System.Drawing.Size(205, 24)
+            };
+            cmbTransformMode.Items.Add("General / Centroid Based");
+            cmbTransformMode.Items.Add("Tapered / Longest Edge");
+            cmbTransformMode.SelectedIndex = 0;
+            lblStatus = new Label { Text = "Status: Select Width or Length mode.", Location = new System.Drawing.Point(10, 55), Size = new System.Drawing.Size(1060, 20) };
 
-            panel.Controls.AddRange(new Control[] { btnSetWidth, btnSetLength, chkSnapToEdge, btnResetZoom, btnSave, lblStatus });
+            panel.Controls.AddRange(new Control[] { btnSetWidth, btnSetLength, chkSnapToEdge, btnResetZoom, btnSave, cmbTransformMode, lblStatus });
             this.Controls.Add(panel);
 
             pictureBox = new PictureBox
@@ -179,13 +190,27 @@ namespace Matric_scope
 
             btnSetWidth.Click += (s, e) => {
                 currentState = ClickState.Width;
-                lblStatus.Text = "Click 2 points for WIDTH on the image.";
+                lblStatus.Text = IsCentroidMode
+                    ? "Drag from the centroid: WIDTH is mirrored automatically."
+                    : "Drag anywhere from one edge to the other to set WIDTH.";
                 pictureBox.Cursor = precisionCursor;
             };
             btnSetLength.Click += (s, e) => {
                 currentState = ClickState.Length;
-                lblStatus.Text = "Click 2 points for LENGTH on the image.";
+                lblStatus.Text = IsCentroidMode
+                    ? "Drag from the centroid: LENGTH is mirrored automatically."
+                    : "Drag anywhere from one edge to the other to set LENGTH.";
                 pictureBox.Cursor = precisionCursor;
+            };
+            cmbTransformMode.SelectedIndexChanged += (s, e) =>
+            {
+                wPt1 = wPt2 = lPt1 = lPt2 = null;
+                currentState = ClickState.None;
+                DetectBaseOrientation();
+                lblStatus.Text = IsCentroidMode
+                    ? "Centroid mode: each endpoint is mirrored through the center."
+                    : "Tapered mode: draw two independent edge-to-edge lines.";
+                RedrawOverlay();
             };
 
             btnResetZoom.Click += (s, e) => { ResetZoomAndPan(); };
@@ -215,17 +240,16 @@ namespace Matric_scope
                 if (largest != null)
                 {
                     var hull = Cv2.ConvexHull(largest);
-                    RotatedRect box = Cv2.MinAreaRect(hull);
-                    centroid = box.Center;
-                    baseAngle = box.Angle;
-                    refBoxSize = box.Size;
+                    ShapeTransformMode transformMode = IsCentroidMode
+                        ? ShapeTransformMode.Centroid
+                        : ShapeTransformMode.TaperedLongestEdge;
+                    CustomShapeEngine.GetInvariantTransform(hull, transformMode, out centroid,
+                        out _, out _, out _);
                 }
                 else
                 {
                     MessageBox.Show("Vision Error: Stone contour not detected.", "Vision Warning");
                     centroid = new Point2f(sourceFrame.Width / 2f, sourceFrame.Height / 2f);
-                    baseAngle = 0f;
-                    refBoxSize = new Size2f(100, 100);
                 }
             }
         }
@@ -248,7 +272,7 @@ namespace Matric_scope
                 panOffset.X = (int)(e.X - (e.X - panOffset.X) * zoomRatio);
                 panOffset.Y = (int)(e.Y - (e.Y - panOffset.Y) * zoomRatio);
             }
-            pictureBox.Invalidate();
+            RedrawOverlay();
         }
 
         private void PictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -261,34 +285,51 @@ namespace Matric_scope
                 return;
             }
 
-            if (e.Button == MouseButtons.Left && currentState != ClickState.None && sourceFrame != null)
+            if (e.Button == MouseButtons.Left && sourceFrame != null)
             {
                 Point2f imgPt = MapScreenToImageCoordinates(e.Location);
                 if (imgPt.X >= 0 && imgPt.X < sourceFrame.Width && imgPt.Y >= 0 && imgPt.Y < sourceFrame.Height)
                 {
-                    if (currentState == ClickState.Width)
+                    activeHandle = HitTestMeasurementHandle(e.Location);
+
+                    if (activeHandle == DragHandle.None && currentState != ClickState.None)
                     {
-                        if (wPt1 == null) wPt1 = imgPt;
+                        if (currentState == ClickState.Width)
+                        {
+                            activeHandle = DragHandle.WidthPoint2;
+                            if (IsCentroidMode)
+                            {
+                                SetMeasurementEndpoint(activeHandle, imgPt);
+                            }
+                            else
+                            {
+                                wPt1 = imgPt;
+                                wPt2 = imgPt;
+                            }
+                        }
                         else
                         {
-                            wPt2 = imgPt;
-                            currentState = ClickState.None;
-                            lblStatus.Text = "Width points recorded.";
-                            pictureBox.Cursor = Cursors.Default;
+                            activeHandle = DragHandle.LengthPoint2;
+                            if (IsCentroidMode)
+                            {
+                                SetMeasurementEndpoint(activeHandle, imgPt);
+                            }
+                            else
+                            {
+                                lPt1 = imgPt;
+                                lPt2 = imgPt;
+                            }
                         }
                     }
-                    else if (currentState == ClickState.Length)
+
+                    if (activeHandle != DragHandle.None)
                     {
-                        if (lPt1 == null) lPt1 = imgPt;
-                        else
-                        {
-                            lPt2 = imgPt;
-                            currentState = ClickState.None;
-                            lblStatus.Text = "Length points recorded.";
-                            pictureBox.Cursor = Cursors.Default;
-                        }
+                        pictureBox.Capture = true;
+                        pictureBox.Cursor = Cursors.SizeAll;
+                        SetMeasurementEndpoint(activeHandle, imgPt);
+                        UpdateCustomMeasurementStatus();
+                        RedrawOverlay();
                     }
-                    RedrawOverlay();
                 }
             }
         }
@@ -302,6 +343,25 @@ namespace Matric_scope
                 dragStart = e.Location;
                 pictureBox.Invalidate();
             }
+            else if (activeHandle != DragHandle.None)
+            {
+                Point2f imgPt = ClampToSource(MapScreenToImageCoordinates(e.Location));
+                SetMeasurementEndpoint(activeHandle, imgPt);
+                UpdateCustomMeasurementStatus();
+                RedrawOverlay();
+                // MouseMove can fire faster than normal invalidated paints. Force
+                // one synchronous repaint so the operator sees every new value
+                // during the drag rather than only after releasing the mouse.
+                lblStatus.Refresh();
+                pictureBox.Refresh();
+            }
+            else
+            {
+                DragHandle hoverHandle = HitTestMeasurementHandle(e.Location);
+                pictureBox.Cursor = hoverHandle != DragHandle.None
+                    ? Cursors.SizeAll
+                    : (currentState != ClickState.None ? precisionCursor : Cursors.Default);
+            }
         }
 
         private void PictureBox_MouseUp(object sender, MouseEventArgs e)
@@ -310,6 +370,17 @@ namespace Matric_scope
             {
                 isPanning = false;
                 pictureBox.Cursor = (currentState != ClickState.None) ? precisionCursor : Cursors.Default;
+            }
+            else if (e.Button == MouseButtons.Left && activeHandle != DragHandle.None)
+            {
+                activeHandle = DragHandle.None;
+                currentState = ClickState.None;
+                pictureBox.Capture = false;
+                pictureBox.Cursor = Cursors.Default;
+                UpdateCustomMeasurementStatus();
+                RedrawOverlay();
+                lblStatus.Refresh();
+                pictureBox.Refresh();
             }
         }
 
@@ -322,13 +393,16 @@ namespace Matric_scope
             e.Graphics.ScaleTransform(zoomFactor, zoomFactor);
             Rectangle targetRect = GetAspectFitRectangle();
             e.Graphics.DrawImage(pictureBox.Image, targetRect);
+            e.Graphics.ResetTransform();
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            DrawEditableHandles(e.Graphics);
         }
 
         private void ResetZoomAndPan()
         {
             zoomFactor = 1.0f;
             panOffset = new System.Drawing.Point(0, 0);
-            pictureBox.Invalidate();
+            RedrawOverlay();
         }
 
         private Rectangle GetAspectFitRectangle()
@@ -357,41 +431,232 @@ namespace Matric_scope
             return new Point2f(imgX, imgY);
         }
 
-        private void RedrawOverlay()
+        private PointF MapImageToScreenCoordinates(Point2f imagePoint)
         {
-            displayFrame = sourceFrame.Clone();
-            Cv2.Circle(displayFrame, (OpenCvSharp.Point)centroid, 5, Scalar.Yellow, -1);
+            Rectangle targetRect = GetAspectFitRectangle();
+            float fittedX = targetRect.X + imagePoint.X * targetRect.Width / sourceFrame.Width;
+            float fittedY = targetRect.Y + imagePoint.Y * targetRect.Height / sourceFrame.Height;
+            return new PointF(fittedX * zoomFactor + panOffset.X,
+                fittedY * zoomFactor + panOffset.Y);
+        }
 
-            // Draw Width and Real-Time mm label
-            if (wPt1.HasValue && wPt2.HasValue)
+        private DragHandle HitTestMeasurementHandle(System.Drawing.Point mousePoint)
+        {
+            const double grabRadius = 10.0;
+            PointF mouse = new PointF(mousePoint.X, mousePoint.Y);
+
+            if (wPt1.HasValue && ScreenDistance(mouse, MapImageToScreenCoordinates(wPt1.Value)) <= grabRadius)
+                return DragHandle.WidthPoint1;
+            if (wPt2.HasValue && ScreenDistance(mouse, MapImageToScreenCoordinates(wPt2.Value)) <= grabRadius)
+                return DragHandle.WidthPoint2;
+            if (lPt1.HasValue && ScreenDistance(mouse, MapImageToScreenCoordinates(lPt1.Value)) <= grabRadius)
+                return DragHandle.LengthPoint1;
+            if (lPt2.HasValue && ScreenDistance(mouse, MapImageToScreenCoordinates(lPt2.Value)) <= grabRadius)
+                return DragHandle.LengthPoint2;
+
+            return DragHandle.None;
+        }
+
+        private static double ScreenDistance(PointF first, PointF second)
+        {
+            double dx = second.X - first.X;
+            double dy = second.Y - first.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        private Point2f ClampToSource(Point2f point)
+        {
+            return new Point2f(
+                Math.Max(0f, Math.Min(sourceFrame.Width - 1f, point.X)),
+                Math.Max(0f, Math.Min(sourceFrame.Height - 1f, point.Y)));
+        }
+
+        private bool IsCentroidMode => cmbTransformMode == null || cmbTransformMode.SelectedIndex == 0;
+
+        private void SetMeasurementEndpoint(DragHandle handle, Point2f draggedPoint)
+        {
+            draggedPoint = ClampToSource(draggedPoint);
+
+            if (IsCentroidMode)
             {
-                Cv2.Line(displayFrame, (OpenCvSharp.Point)wPt1.Value, (OpenCvSharp.Point)wPt2.Value, Scalar.Red, 2);
-
-                double widthPixels = wPt1.Value.DistanceTo(wPt2.Value);
-                double widthMm = widthPixels * pixelToMmRatio;
-
-                OpenCvSharp.Point wMid = new OpenCvSharp.Point((wPt1.Value.X + wPt2.Value.X) / 2, (wPt1.Value.Y + wPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{widthMm:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
-                    HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
+                SetSymmetricEndpoint(handle, draggedPoint);
+                return;
             }
 
-            // Draw Length and Real-Time mm label
+            switch (handle)
+            {
+                case DragHandle.WidthPoint1:
+                    wPt1 = draggedPoint;
+                    break;
+                case DragHandle.WidthPoint2:
+                    wPt2 = draggedPoint;
+                    break;
+                case DragHandle.LengthPoint1:
+                    lPt1 = draggedPoint;
+                    break;
+                case DragHandle.LengthPoint2:
+                    lPt2 = draggedPoint;
+                    break;
+            }
+        }
+
+        private void SetSymmetricEndpoint(DragHandle handle, Point2f draggedPoint)
+        {
+            float deltaX = draggedPoint.X - centroid.X;
+            float deltaY = draggedPoint.Y - centroid.Y;
+            float scale = Math.Min(SymmetricAxisScale(centroid.X, deltaX, sourceFrame.Width - 1f),
+                SymmetricAxisScale(centroid.Y, deltaY, sourceFrame.Height - 1f));
+            Point2f selected = new Point2f(centroid.X + deltaX * scale, centroid.Y + deltaY * scale);
+            Point2f opposite = new Point2f(centroid.X - deltaX * scale, centroid.Y - deltaY * scale);
+
+            switch (handle)
+            {
+                case DragHandle.WidthPoint1: wPt1 = selected; wPt2 = opposite; break;
+                case DragHandle.WidthPoint2: wPt2 = selected; wPt1 = opposite; break;
+                case DragHandle.LengthPoint1: lPt1 = selected; lPt2 = opposite; break;
+                case DragHandle.LengthPoint2: lPt2 = selected; lPt1 = opposite; break;
+            }
+        }
+
+        private static float SymmetricAxisScale(float center, float delta, float maximum)
+        {
+            if (Math.Abs(delta) < 0.0001f) return 1f;
+            float forwardRoom = delta > 0f ? maximum - center : center;
+            float oppositeRoom = delta > 0f ? center : maximum - center;
+            return Math.Min(1f, Math.Min(forwardRoom, oppositeRoom) / Math.Abs(delta));
+        }
+
+        private void UpdateCustomMeasurementStatus()
+        {
+            string widthText = wPt1.HasValue && wPt2.HasValue
+                ? string.Format("Width {0:F2} mm", wPt1.Value.DistanceTo(wPt2.Value) * pixelToMmRatio)
+                : "Width --";
+            string lengthText = lPt1.HasValue && lPt2.HasValue
+                ? string.Format("Length {0:F2} mm", lPt1.Value.DistanceTo(lPt2.Value) * pixelToMmRatio)
+                : "Length --";
+            lblStatus.Text = widthText + "  |  " + lengthText;
+        }
+
+        private void RedrawOverlay()
+        {
+            displayFrame?.Dispose();
+            displayFrame = sourceFrame.Clone();
+            float handleRadiusInImage = GetImageRadiusForScreenPixels(5f);
+
+            // Draw the width axis; its live value is rendered in screen space.
+            if (wPt1.HasValue && wPt2.HasValue)
+            {
+                if (IsCentroidMode)
+                    DrawAxisWithCircleGaps(displayFrame, wPt1.Value, centroid, wPt2.Value, Scalar.Red, handleRadiusInImage);
+                else
+                    DrawSegmentOutsideCircles(displayFrame, wPt1.Value, wPt2.Value, Scalar.Red, handleRadiusInImage);
+            }
+
+            // Draw the length axis; its live value is rendered in screen space.
             if (lPt1.HasValue && lPt2.HasValue)
             {
-                Cv2.Line(displayFrame, (OpenCvSharp.Point)lPt1.Value, (OpenCvSharp.Point)lPt2.Value, Scalar.Blue, 2);
-
-                double lengthPixels = lPt1.Value.DistanceTo(lPt2.Value);
-                double lengthMm = lengthPixels * pixelToMmRatio;
-
-                OpenCvSharp.Point lMid = new OpenCvSharp.Point((lPt1.Value.X + lPt2.Value.X) / 2, (lPt1.Value.Y + lPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{lengthMm:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
-                    HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
+                if (IsCentroidMode)
+                    DrawAxisWithCircleGaps(displayFrame, lPt1.Value, centroid, lPt2.Value, Scalar.Blue, handleRadiusInImage);
+                else
+                    DrawSegmentOutsideCircles(displayFrame, lPt1.Value, lPt2.Value, Scalar.Blue, handleRadiusInImage);
             }
 
             Bitmap oldBmp = pictureBox.Image as Bitmap;
             pictureBox.Image = BitmapConverter.ToBitmap(displayFrame);
             oldBmp?.Dispose();
             pictureBox.Invalidate();
+        }
+
+        private float GetImageRadiusForScreenPixels(float screenRadius)
+        {
+            Rectangle targetRect = GetAspectFitRectangle();
+            float displayScale = (float)targetRect.Width / sourceFrame.Width * zoomFactor;
+            return displayScale > 0f ? screenRadius / displayScale : screenRadius;
+        }
+
+        private static void DrawSegmentOutsideCircles(Mat frame, Point2f start, Point2f end, Scalar color, float radius)
+        {
+            float dx = end.X - start.X;
+            float dy = end.Y - start.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length <= radius * 2f) return;
+
+            float ux = dx / length;
+            float uy = dy / length;
+            var visibleStart = new Point2f(start.X + ux * radius, start.Y + uy * radius);
+            var visibleEnd = new Point2f(end.X - ux * radius, end.Y - uy * radius);
+            Cv2.Line(frame, (OpenCvSharp.Point)visibleStart, (OpenCvSharp.Point)visibleEnd,
+                color, 2, LineTypes.AntiAlias);
+        }
+
+        private static void DrawAxisWithCircleGaps(Mat frame, Point2f first, Point2f center,
+            Point2f second, Scalar color, float radius)
+        {
+            DrawSegmentOutsideCircles(frame, first, center, color, radius);
+            DrawSegmentOutsideCircles(frame, center, second, color, radius);
+        }
+
+        private void DrawEditableHandles(Graphics graphics)
+        {
+            DrawScreenHandle(graphics, MapImageToScreenCoordinates(centroid));
+            if (wPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt1.Value));
+            if (wPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(wPt2.Value));
+            if (lPt1.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt1.Value));
+            if (lPt2.HasValue) DrawScreenHandle(graphics, MapImageToScreenCoordinates(lPt2.Value));
+
+            // Draw values as screen-space overlays as well as in the saved image.
+            // These labels repaint synchronously on every drag movement and stay
+            // the same readable size at every zoom level.
+            if (wPt1.HasValue && wPt2.HasValue)
+            {
+                PointF first = MapImageToScreenCoordinates(wPt1.Value);
+                PointF second = MapImageToScreenCoordinates(wPt2.Value);
+                string width = string.Format("Width {0:F2} mm",
+                    wPt1.Value.DistanceTo(wPt2.Value) * pixelToMmRatio);
+                DrawLiveValue(graphics, width, OffsetFromLineMidpoint(first, second, 24f), Color.Red);
+            }
+
+            if (lPt1.HasValue && lPt2.HasValue)
+            {
+                PointF first = MapImageToScreenCoordinates(lPt1.Value);
+                PointF second = MapImageToScreenCoordinates(lPt2.Value);
+                string length = string.Format("Length {0:F2} mm",
+                    lPt1.Value.DistanceTo(lPt2.Value) * pixelToMmRatio);
+                DrawLiveValue(graphics, length, OffsetFromLineMidpoint(first, second, -24f), Color.DeepSkyBlue);
+            }
+        }
+
+        private static PointF OffsetFromLineMidpoint(PointF first, PointF second, float offset)
+        {
+            float middleX = (first.X + second.X) / 2f;
+            float middleY = (first.Y + second.Y) / 2f;
+            float dx = second.X - first.X;
+            float dy = second.Y - first.Y;
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (length < 0.001f) return new PointF(middleX, middleY);
+            return new PointF(middleX - dy / length * offset, middleY + dx / length * offset);
+        }
+
+        private static void DrawLiveValue(Graphics graphics, string text, PointF center, Color color)
+        {
+            using (var font = new Font("Microsoft Sans Serif", 11f, FontStyle.Bold))
+            using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
+            using (var foreground = new SolidBrush(color))
+            {
+                SizeF size = graphics.MeasureString(text, font);
+                RectangleF box = new RectangleF(center.X - size.Width / 2f - 5f,
+                    center.Y - size.Height / 2f - 3f, size.Width + 10f, size.Height + 6f);
+                graphics.FillRectangle(background, box);
+                graphics.DrawString(text, font, foreground, box.X + 5f, box.Y + 3f);
+            }
+        }
+
+        private static void DrawScreenHandle(Graphics graphics, PointF center)
+        {
+            using (var outline = new Pen(Color.White, 1.5f))
+            {
+                graphics.DrawEllipse(outline, center.X - 5f, center.Y - 5f, 10f, 10f);
+            }
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -433,7 +698,11 @@ namespace Matric_scope
                 var hull = Cv2.ConvexHull(largest);
 
                 // Extact Bi-Axial independent dimensions based on the new Spatial Mathematics
-                CustomShapeEngine.GetInvariantTransform(hull, out refCenter, out refAngle, out span1, out span2);
+                ShapeTransformMode transformMode = cmbTransformMode.SelectedIndex == 1
+                    ? ShapeTransformMode.TaperedLongestEdge
+                    : ShapeTransformMode.Centroid;
+                CustomShapeEngine.GetInvariantTransform(hull, transformMode,
+                    out refCenter, out refAngle, out span1, out span2);
             }
 
             string recordsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CustomShapes");
@@ -455,9 +724,13 @@ namespace Matric_scope
                 WidthPt2 = normW2,
                 LengthPt1 = normL1,
                 LengthPt2 = normL2,
-                RefAngle = 0f,
+                // Preserve the training orientation as profile metadata.
+                RefAngle = (float)refAngle,
                 ContourData = "",
-                SnapToEdge = chkSnapToEdge.Checked
+                SnapToEdge = chkSnapToEdge.Checked,
+                TransformMode = cmbTransformMode.SelectedIndex == 1
+                    ? ShapeTransformMode.TaperedLongestEdge
+                    : ShapeTransformMode.Centroid
             };
 
             DatabaseHelper.SaveShape(shape);

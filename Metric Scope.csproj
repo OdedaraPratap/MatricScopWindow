@@ -233,6 +233,9 @@
     <Compile Include="LabelPrintingEngine.cs" />
     <Compile Include="MeasurePearShape.cs" />
     <Compile Include="MeasurePearShape1.cs" />
+    <Compile Include="ManualMeasurementForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ModifyRegistry.cs" />
     <Compile Include="PasswordForm.cs">
       <SubType>Form</SubType>
