@@ -6,6 +6,12 @@ using OpenCvSharp;
 
 namespace Matric_scope
 {
+    public enum ShapeTransformMode
+    {
+        Centroid = 0,
+        TaperedLongestEdge = 1
+    }
+
     public class ShapeData
     {
         public int Id { get; set; }
@@ -22,6 +28,7 @@ namespace Matric_scope
         public float RefAngle { get; set; }
         public string ContourData { get; set; }
         public bool SnapToEdge { get; set; }
+        public ShapeTransformMode TransformMode { get; set; } = ShapeTransformMode.Centroid;
     }
     public static class DatabaseHelper
     {
@@ -43,13 +50,15 @@ namespace Matric_scope
                     RefAngle REAL,
                     ContourData TEXT,
                     TemplateMaskPath TEXT,
-                    SnapToEdge INTEGER DEFAULT 0
+                    SnapToEdge INTEGER DEFAULT 0,
+                    TransformMode INTEGER DEFAULT 0
                 );";
                 using (var cmd = new SQLiteCommand(sql, conn)) { cmd.ExecuteNonQuery(); }
 
                 try { using (var cmd = new SQLiteCommand("ALTER TABLE CustomShapes ADD COLUMN TemplateMaskPath TEXT;", conn)) { cmd.ExecuteNonQuery(); } } catch { }
                 try { using (var cmd = new SQLiteCommand("ALTER TABLE CustomShapes ADD COLUMN ContourData TEXT;", conn)) { cmd.ExecuteNonQuery(); } } catch { }
                 try { using (var cmd = new SQLiteCommand("ALTER TABLE CustomShapes ADD COLUMN RefAngle REAL DEFAULT 0;", conn)) { cmd.ExecuteNonQuery(); } } catch { }
+                try { using (var cmd = new SQLiteCommand("ALTER TABLE CustomShapes ADD COLUMN TransformMode INTEGER DEFAULT 0;", conn)) { cmd.ExecuteNonQuery(); } } catch { }
             }
         }
         public static void SaveShape(ShapeData shape)
@@ -58,8 +67,8 @@ namespace Matric_scope
             {
                 conn.Open();
                 string sql = @"
-                INSERT INTO CustomShapes (Name, ImagePath, W1X, W1Y, W2X, W2Y, L1X, L1Y, L2X, L2Y, RefAngle, ContourData, TemplateMaskPath, SnapToEdge)
-                VALUES (@Name, @ImagePath, @W1X, @W1Y, @W2X, @W2Y, @L1X, @L1Y, @L2X, @L2Y, @RefAngle, @ContourData, @TemplateMaskPath, @SnapToEdge);";
+                INSERT INTO CustomShapes (Name, ImagePath, W1X, W1Y, W2X, W2Y, L1X, L1Y, L2X, L2Y, RefAngle, ContourData, TemplateMaskPath, SnapToEdge, TransformMode)
+                VALUES (@Name, @ImagePath, @W1X, @W1Y, @W2X, @W2Y, @L1X, @L1Y, @L2X, @L2Y, @RefAngle, @ContourData, @TemplateMaskPath, @SnapToEdge, @TransformMode);";
 
                 using (var cmd = new SQLiteCommand(sql, conn))
                 {
@@ -77,6 +86,7 @@ namespace Matric_scope
                     cmd.Parameters.AddWithValue("@ContourData", shape.ContourData ?? "");
                     cmd.Parameters.AddWithValue("@TemplateMaskPath", shape.TemplateMaskPath ?? "");
                     cmd.Parameters.AddWithValue("@SnapToEdge", shape.SnapToEdge ? 1 : 0);
+                    cmd.Parameters.AddWithValue("@TransformMode", (int)shape.TransformMode);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -106,7 +116,10 @@ namespace Matric_scope
                             RefAngle = reader["RefAngle"] != DBNull.Value ? Convert.ToSingle(reader["RefAngle"]) : 0f,
                             ContourData = reader["ContourData"] != DBNull.Value ? reader["ContourData"].ToString() : "",
                             TemplateMaskPath = reader["TemplateMaskPath"] != DBNull.Value ? reader["TemplateMaskPath"].ToString() : "",
-                            SnapToEdge = Convert.ToInt32(reader["SnapToEdge"]) == 1
+                            SnapToEdge = Convert.ToInt32(reader["SnapToEdge"]) == 1,
+                            TransformMode = reader["TransformMode"] != DBNull.Value
+                                ? (ShapeTransformMode)Convert.ToInt32(reader["TransformMode"])
+                                : ShapeTransformMode.Centroid
                         });
                     }
                 }

@@ -40,7 +40,8 @@ namespace Matric_scope
                 var liveHull = Cv2.ConvexHull(largestContour);
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
-                GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                GetInvariantTransform(liveHull, activeShape.TransformMode, out Point2f liveCenter,
+                    out double liveAngle, out float liveSpan1, out float liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -102,7 +103,8 @@ namespace Matric_scope
                 var liveHull = Cv2.ConvexHull(largestContour);
 
                 // 1. Extract Bi-Axial independent dimensions from the live stone
-                GetInvariantTransform(liveHull, out Point2f liveCenter, out double liveAngle, out float liveSpan1, out float liveSpan2);
+                GetInvariantTransform(liveHull, activeShape.TransformMode, out Point2f liveCenter,
+                    out double liveAngle, out float liveSpan1, out float liveSpan2);
 
                 // 2. Map normalized clicks to screen using independent scaling to accommodate fat/skinny stones
                 Point2f calcW1 = ProjectToScreen(activeShape.WidthPt1, liveCenter, liveAngle, liveSpan1, liveSpan2);
@@ -236,6 +238,82 @@ namespace Matric_scope
 
             span1 = (float)(maxP1 - minP1);
             span2 = (float)(maxP2 - minP2);
+        }
+
+        public static void GetInvariantTransform(OpenCvSharp.Point[] hull, ShapeTransformMode transformMode,
+            out Point2f centroid, out double angle, out float span1, out float span2)
+        {
+            if (transformMode == ShapeTransformMode.TaperedLongestEdge)
+            {
+                GetTaperedTransform(hull, out centroid, out angle, out span1, out span2);
+                return;
+            }
+
+            GetInvariantTransform(hull, out centroid, out angle, out span1, out span2);
+        }
+
+        private static void GetTaperedTransform(OpenCvSharp.Point[] hull, out Point2f centroid,
+            out double angle, out float span1, out float span2)
+        {
+            if (hull == null || hull.Length < 2)
+            {
+                centroid = new Point2f();
+                angle = 0.0;
+                span1 = span2 = 1f;
+                return;
+            }
+
+            Moments moments = Cv2.Moments(hull);
+            centroid = Math.Abs(moments.M00) > double.Epsilon
+                ? new Point2f((float)(moments.M10 / moments.M00), (float)(moments.M01 / moments.M00))
+                : new Point2f((float)hull.Average(point => point.X), (float)hull.Average(point => point.Y));
+
+            // A tapered/trapezoidal shape is anchored by its longest boundary
+            // edge. Unlike a longest point-to-point diagonal, this selects the
+            // trained base edge and remains on that parallel axis after rotation.
+            long longestEdgeSquared = -1;
+            OpenCvSharp.Point edgeStart = hull[0];
+            OpenCvSharp.Point edgeEnd = hull[1];
+            for (int index = 0; index < hull.Length; index++)
+            {
+                OpenCvSharp.Point first = hull[index];
+                OpenCvSharp.Point second = hull[(index + 1) % hull.Length];
+                long deltaX = second.X - first.X;
+                long deltaY = second.Y - first.Y;
+                long edgeSquared = deltaX * deltaX + deltaY * deltaY;
+                if (edgeSquared > longestEdgeSquared)
+                {
+                    longestEdgeSquared = edgeSquared;
+                    edgeStart = first;
+                    edgeEnd = second;
+                }
+            }
+
+            double theta = Math.Atan2(edgeEnd.Y - edgeStart.Y, edgeEnd.X - edgeStart.X);
+            while (theta < 0.0) theta += Math.PI;
+            while (theta >= Math.PI) theta -= Math.PI;
+            const double quarterDegreeRadians = Math.PI / 720.0;
+            angle = Math.Round(theta / quarterDegreeRadians) * quarterDegreeRadians;
+            if (angle >= Math.PI) angle = 0.0;
+
+            double axisX = Math.Cos(angle), axisY = Math.Sin(angle);
+            double normalX = -axisY, normalY = axisX;
+            double minAxis = double.MaxValue, maxAxis = double.MinValue;
+            double minNormal = double.MaxValue, maxNormal = double.MinValue;
+            foreach (OpenCvSharp.Point point in hull)
+            {
+                double relativeX = point.X - centroid.X;
+                double relativeY = point.Y - centroid.Y;
+                double axisProjection = relativeX * axisX + relativeY * axisY;
+                double normalProjection = relativeX * normalX + relativeY * normalY;
+                minAxis = Math.Min(minAxis, axisProjection);
+                maxAxis = Math.Max(maxAxis, axisProjection);
+                minNormal = Math.Min(minNormal, normalProjection);
+                maxNormal = Math.Max(maxNormal, normalProjection);
+            }
+
+            span1 = (float)Math.Max(1.0, maxAxis - minAxis);
+            span2 = (float)Math.Max(1.0, maxNormal - minNormal);
         }
 
         public static Point2f ProjectToLocal(Point2f pt, Point2f centroid, double angle, float span1, float span2)

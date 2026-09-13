@@ -19,6 +19,7 @@ namespace Matric_scope
         private Button btnResetZoom;
         private Button btnSave;
         private CheckBox chkSnapToEdge;
+        private ComboBox cmbTransformMode;
         private Label lblStatus;
 
         private Mat sourceFrame;
@@ -146,7 +147,7 @@ namespace Matric_scope
             this.Size = new System.Drawing.Size(1100, 720);
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            Panel panel = new Panel { Dock = DockStyle.Top, Height = 55 };
+            Panel panel = new Panel { Dock = DockStyle.Top, Height = 82 };
             btnSetWidth = new Button { Text = "1. Set Width (Drag)", Location = new System.Drawing.Point(10, 12), Size = new System.Drawing.Size(140, 30) };
             btnSetLength = new Button { Text = "2. Set Length (Drag)", Location = new System.Drawing.Point(160, 12), Size = new System.Drawing.Size(140, 30) };
 
@@ -160,9 +161,18 @@ namespace Matric_scope
 
             btnResetZoom = new Button { Text = "Reset Zoom", Location = new System.Drawing.Point(430, 12), Size = new System.Drawing.Size(95, 30) };
             btnSave = new Button { Text = "3. Save Shape", Location = new System.Drawing.Point(535, 12), Size = new System.Drawing.Size(105, 30) };
-            lblStatus = new Label { Text = "Status: Select Width or Length mode.", Location = new System.Drawing.Point(650, 17), Size = new System.Drawing.Size(420, 20) };
+            cmbTransformMode = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new System.Drawing.Point(650, 14),
+                Size = new System.Drawing.Size(205, 24)
+            };
+            cmbTransformMode.Items.Add("General / Centroid Based");
+            cmbTransformMode.Items.Add("Tapered / Longest Edge");
+            cmbTransformMode.SelectedIndex = 0;
+            lblStatus = new Label { Text = "Status: Select Width or Length mode.", Location = new System.Drawing.Point(10, 55), Size = new System.Drawing.Size(1060, 20) };
 
-            panel.Controls.AddRange(new Control[] { btnSetWidth, btnSetLength, chkSnapToEdge, btnResetZoom, btnSave, lblStatus });
+            panel.Controls.AddRange(new Control[] { btnSetWidth, btnSetLength, chkSnapToEdge, btnResetZoom, btnSave, cmbTransformMode, lblStatus });
             this.Controls.Add(panel);
 
             pictureBox = new PictureBox
@@ -618,7 +628,11 @@ namespace Matric_scope
                 var hull = Cv2.ConvexHull(largest);
 
                 // Extact Bi-Axial independent dimensions based on the new Spatial Mathematics
-                CustomShapeEngine.GetInvariantTransform(hull, out refCenter, out refAngle, out span1, out span2);
+                ShapeTransformMode transformMode = cmbTransformMode.SelectedIndex == 1
+                    ? ShapeTransformMode.TaperedLongestEdge
+                    : ShapeTransformMode.Centroid;
+                CustomShapeEngine.GetInvariantTransform(hull, transformMode,
+                    out refCenter, out refAngle, out span1, out span2);
             }
 
             string recordsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CustomShapes");
@@ -643,7 +657,10 @@ namespace Matric_scope
                 // Preserve the training orientation as profile metadata.
                 RefAngle = (float)refAngle,
                 ContourData = "",
-                SnapToEdge = chkSnapToEdge.Checked
+                SnapToEdge = chkSnapToEdge.Checked,
+                TransformMode = cmbTransformMode.SelectedIndex == 1
+                    ? ShapeTransformMode.TaperedLongestEdge
+                    : ShapeTransformMode.Centroid
             };
 
             DatabaseHelper.SaveShape(shape);
