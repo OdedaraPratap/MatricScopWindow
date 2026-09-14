@@ -75,6 +75,9 @@ namespace Matric_scope
                 Point center = new Point((int)minRect.Center.X, (int)minRect.Center.Y);
                 Cv2.Circle(src, center, 4, Scalar.White, -1, LineTypes.AntiAlias);
 
+                boxLengthMM = ApplyVariation(boxLengthMM, true);
+                boxWidthMM = ApplyVariation(boxWidthMM, false);
+
                 Point pBoxText = new Point(15, 35);
                 Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
 
@@ -179,6 +182,9 @@ namespace Matric_scope
 
                 Point center = new Point((int)minRect.Center.X, (int)minRect.Center.Y);
                 Cv2.Circle(src, center, 4, Scalar.White, -1, LineTypes.AntiAlias);
+
+                boxLengthMM = ApplyVariation(boxLengthMM, true);
+                boxWidthMM = ApplyVariation(boxWidthMM, false);
 
                 Point pBoxText = new Point(15, 35);
                 Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
@@ -312,6 +318,9 @@ namespace Matric_scope
                 Point lengthMidPoint = new Point((tip1.X + tip2.X) / 2 + 20, (tip1.Y + tip2.Y) / 2 - 15);
                 Point widthMidPoint = new Point((widthPoint1.X + widthPoint2.X) / 2 - 80, (widthPoint1.Y + widthPoint2.Y) / 2 + 25);
 
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
+
                 Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
                 Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
@@ -403,6 +412,9 @@ namespace Matric_scope
                 Cv2.Line(src, new Point(bottomApexPoint.X, topLobePoint.Y), bottomApexPoint, Scalar.Red, 1, LineTypes.AntiAlias);
                 Cv2.Line(src, new Point(widthLeft.X, middleY), new Point(widthRight.X, middleY), Scalar.Yellow, 1, LineTypes.AntiAlias);
                 Cv2.Polylines(src, new[] { smoothContour }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
+
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
 
                 Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
                 Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
@@ -551,6 +563,9 @@ namespace Matric_scope
                 double widthMM = widthPx / ppm;
                 double dipDepthMM = dipPx / ppm;
                 double ratio = widthMM == 0 ? 0 : lengthMM / widthMM;
+
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
 
                 // ==========================================================
                 // 5. RENDER GRAPHICS
@@ -708,6 +723,9 @@ namespace Matric_scope
                 Cv2.Circle(src, centroid, 5, Scalar.Orange, -1, LineTypes.AntiAlias);
                 Cv2.Polylines(src, new[] { smoothContour }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
+
                 Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
                 Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
@@ -842,6 +860,9 @@ namespace Matric_scope
                 double lengthMM = maxBaseProjection / ppm;
                 double widthMM = maxWidthDist / ppm;
                 double ratio = widthMM == 0 ? 0 : lengthMM / widthMM;
+
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
 
                 // Render crosshairs
                 Cv2.Line(src, pearTip, pearBase, Scalar.Red, 1, LineTypes.AntiAlias);
@@ -985,6 +1006,9 @@ namespace Matric_scope
                 double widthMM = maxWidthDist / ppm;
                 double ratio = widthMM == 0 ? 0 : lengthMM / widthMM;
 
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
+
                 // Render crosshairs
                 Cv2.Line(src, pearTip, pearBase, Scalar.Red, 1, LineTypes.AntiAlias);
                 Cv2.Line(src, widthL, widthR, Scalar.Yellow, 1, LineTypes.AntiAlias);
@@ -1068,6 +1092,9 @@ namespace Matric_scope
                 double lengthMM = lengthPx / ppm;
                 double widthMM = widthPx / ppm;
                 double ratio = widthMM == 0 ? 0 : lengthMM / widthMM;
+
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
 
                 Point2f[] rectPoints = minRect.Points();
                 Point2f p0 = rectPoints[0], p1 = rectPoints[1], p2 = rectPoints[2], p3 = rectPoints[3];
@@ -1223,6 +1250,9 @@ namespace Matric_scope
                 Point lengthMidPoint = new Point((tip1.X + tip2.X) / 2 + 20, (tip1.Y + tip2.Y) / 2 - 15);
                 Point widthMidPoint = new Point((widthPoint1.X + widthPoint2.X) / 2 - 80, (widthPoint1.Y + widthPoint2.Y) / 2 + 25);
 
+                lengthMM = ApplyVariation(lengthMM, true);
+                widthMM = ApplyVariation(widthMM, false);
+
                 Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
                 Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
@@ -1249,6 +1279,33 @@ namespace Matric_scope
             }
         }
 
+        private double ApplyVariation(double rawMeasurementMM, bool isLength)
+        {
+            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
+            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
+
+            // Cap it at 24 so anything 24mm or higher uses the last box
+            if (rangeIndex > 24) rangeIndex = 24;
+            if (rangeIndex < 0) rangeIndex = 0;
+
+            double variation = 0.0;
+            ModifyRegistry mr = new ModifyRegistry();
+
+            try
+            {
+                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
+                string val = mr.Read(regKey);
+
+                if (!string.IsNullOrEmpty(val))
+                {
+                    variation = Convert.ToDouble(val);
+                }
+            }
+            catch { }
+
+            // Add the variation to the original measurement
+            return rawMeasurementMM + variation;
+        }
 
     }
 }

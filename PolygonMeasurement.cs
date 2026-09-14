@@ -684,6 +684,9 @@ namespace Matric_scope
                 double generalLengthMM = lengthPx / ppm;
                 double generalWidthMM = widthPx / ppm;
 
+                generalLengthMM = ApplyVariation(generalLengthMM, true);
+                generalWidthMM = ApplyVariation(generalWidthMM, false);
+
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"Length: {generalLengthMM:F2} mm");
                 sb.AppendLine($"Width : {generalWidthMM:F2} mm");
@@ -788,6 +791,34 @@ namespace Matric_scope
         {
             Point center = new Point((int)points.Average(p => p.X), (int)points.Average(p => p.Y));
             return points.OrderBy(p => Math.Atan2(p.Y - center.Y, p.X - center.X)).ToArray();
+        }
+
+        private static double ApplyVariation(double rawMeasurementMM, bool isLength)
+        {
+            int rangeIndex = (int)Math.Floor(rawMeasurementMM);
+
+            if (rangeIndex > 24) rangeIndex = 24;
+            if (rangeIndex < 0) rangeIndex = 0;
+
+            double variation = 0.0;
+            ModifyRegistry mr = new ModifyRegistry();
+
+            try
+            {
+                string regKey = isLength ? $"LenVar_{rangeIndex}" : $"WidVar_{rangeIndex}";
+                string val = mr.Read(regKey);
+
+                if (!string.IsNullOrEmpty(val))
+                {
+                    variation = Convert.ToDouble(val);
+                }
+            }
+            catch
+            {
+                // Keep the raw calibrated measurement if no valid variation is stored.
+            }
+
+            return rawMeasurementMM + variation;
         }
 
     }
