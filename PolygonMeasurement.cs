@@ -583,8 +583,9 @@ namespace Matric_scope
 
                 using (Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(5, 5)))
                 {
+                    // Closing fills small gaps without eroding the polygon tips.
+                    // A subsequent 5x5 opening rounded those tips inward.
                     Cv2.MorphologyEx(thresh, thresh, MorphTypes.Close, kernel);
-                    Cv2.MorphologyEx(thresh, thresh, MorphTypes.Open, kernel);
                 }
 
                 // ==========================================
@@ -607,7 +608,9 @@ namespace Matric_scope
                 Point[] hull = Cv2.ConvexHull(largestContour);
 
                 double perimeter = Cv2.ArcLength(hull, true);
-                double epsilon = 0.02 * perimeter;
+                // Keep the corner approximation tight. A large epsilon cuts across the
+                // real tips and makes both the overlay and measurements appear inset.
+                double epsilon = 0.01 * perimeter;
                 Point[] polygon = Cv2.ApproxPolyDP(hull, epsilon, true);
 
                 if (polygon.Length < 3) return "Invalid Polygon Corners";
@@ -616,19 +619,22 @@ namespace Matric_scope
                 // 5. TRUE TIP-TO-TIP VECTOR BOUNDING BOX
                 // ==========================================
                 double maxDistSq = 0;
-                Point tip1 = polygon[0];
-                Point tip2 = polygon[0];
+                Point tip1 = hull[0];
+                Point tip2 = hull[0];
 
-                for (int i = 0; i < polygon.Length; i++)
+                // Measure against the full convex hull, not the simplified polygon.
+                // ApproxPolyDP remains useful for identifying sides and angles, but its
+                // reduced vertex set can omit the silhouette's outermost boundary points.
+                for (int i = 0; i < hull.Length; i++)
                 {
-                    for (int j = i + 1; j < polygon.Length; j++)
+                    for (int j = i + 1; j < hull.Length; j++)
                     {
-                        double dSq = Math.Pow(polygon[i].X - polygon[j].X, 2) + Math.Pow(polygon[i].Y - polygon[j].Y, 2);
+                        double dSq = Math.Pow(hull[i].X - hull[j].X, 2) + Math.Pow(hull[i].Y - hull[j].Y, 2);
                         if (dSq > maxDistSq)
                         {
                             maxDistSq = dSq;
-                            tip1 = polygon[i];
-                            tip2 = polygon[j];
+                            tip1 = hull[i];
+                            tip2 = hull[j];
                         }
                     }
                 }
@@ -642,10 +648,11 @@ namespace Matric_scope
                 double nx = uy;
                 double ny = -ux;
 
-                double maxLeftDist = 0;
-                double maxRightDist = 0;
+                double maxLeftDist = double.NegativeInfinity;
+                double maxRightDist = double.PositiveInfinity;
 
-                foreach (Point p in polygon)
+                // Project every boundary point so width reaches both outer support edges.
+                foreach (Point p in hull)
                 {
                     double px = p.X - tip1.X;
                     double py = p.Y - tip1.Y;
