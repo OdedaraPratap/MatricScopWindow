@@ -698,13 +698,10 @@ namespace Matric_scope
                 Cv2.Polylines(src, new[] { boxPoints }, true, Scalar.Red, 1, LineTypes.AntiAlias);
                 Cv2.Line(src, tip1, tip2, Scalar.Orange, 1, LineTypes.AntiAlias);
 
-                // Draw Polygon Vectors (Green Border) LAST with thickness 2 to mask line bleeding
-                for (int i = 0; i < polygon.Length; i++)
-                {
-                    Point p1 = polygon[i];
-                    Point p2 = polygon[(i + 1) % polygon.Length];
-                    Cv2.Line(src, p1, p2, Scalar.Lime, 2, LineTypes.AntiAlias);
-                }
+                // Draw the full detected hull last. The simplified polygon is correct for
+                // side/angle labels, but joining only its reduced vertices draws chords
+                // inside the real silhouette and makes the green outline look inset.
+                Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
                 // Measure Sides & Draw Text Overlay
                 for (int i = 0; i < polygon.Length; i++)
@@ -737,11 +734,11 @@ namespace Matric_scope
                 // ==========================================================
                 using (Mat printCanvas = new Mat(src.Size(), MatType.CV_8UC3, Scalar.White))
                 {
-                    // Draw ONLY the polygon shape outline in thick black
-                    Cv2.Polylines(printCanvas, new[] { polygon }, true, Scalar.Black, 3, LineTypes.AntiAlias);
+                    // Use the same full outer hull that is displayed on screen.
+                    Cv2.Polylines(printCanvas, new[] { hull }, true, Scalar.Black, 3, LineTypes.AntiAlias);
 
                     // Find the bounding box to crop away empty white space
-                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(polygon);
+                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(hull);
 
                     // Add a 15-pixel margin around the shape
                     cropRect.Inflate(15, 15);
