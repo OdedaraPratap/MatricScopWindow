@@ -726,7 +726,7 @@ namespace Matric_scope
                     double angle = CalculateAngle(prev, current, next);
 
                     Cv2.Circle(src, current, 3, Scalar.Red, -1, LineTypes.AntiAlias);
-                    Cv2.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
+                    DrawAngleLabel(src, angle, new Point(current.X + 10, current.Y));
                 }
 
                 // ==========================================================
@@ -782,6 +782,27 @@ namespace Matric_scope
 
             double angle = Math.Acos(cosTheta);
             return angle * 180.0 / Math.PI;
+        }
+
+        private static void DrawAngleLabel(Mat src, double angle, Point origin)
+        {
+            const double fontScale = 0.55;
+            const int thickness = 1;
+            string angleText = $"{angle:F2}";
+
+            // OpenCV's built-in Hershey font is ASCII-only, so passing the Unicode
+            // degree character to PutText renders a question mark. Draw the number
+            // normally and render the degree mark as a small superscript circle.
+            Size textSize = Cv2.GetTextSize(angleText, HersheyFonts.HersheySimplex,
+                fontScale, thickness, out int baseline);
+
+            Cv2.PutText(src, angleText, origin, HersheyFonts.HersheySimplex,
+                fontScale, Scalar.Cyan, thickness, LineTypes.AntiAlias);
+
+            Point degreeCenter = new Point(
+                origin.X + textSize.Width + 4,
+                origin.Y - textSize.Height + 3);
+            Cv2.Circle(src, degreeCenter, 3, Scalar.Cyan, thickness, LineTypes.AntiAlias);
         }
 
         static Point[] SortCornersClockwise(Point[] points)
