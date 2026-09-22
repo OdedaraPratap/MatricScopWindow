@@ -13,53 +13,117 @@ namespace Matric_scope
         private const string ColorRegistryKey = "DrawingTextColor";
         private const string SizeRegistryKey = "DrawingTextSize";
         private const double DefaultFontScale = 0.55;
+        private static readonly object SyncRoot = new object();
+        private static Color fontColor = Color.Yellow;
+        private static double fontScale = DefaultFontScale;
+        private static volatile bool settingsLoaded;
 
-        static DrawingTextSettings()
+        public static Color FontColor
         {
-            Load();
+            get
+            {
+                EnsureSettingsLoaded();
+                lock (SyncRoot)
+                {
+                    return fontColor;
+                }
+            }
         }
 
-        public static Color FontColor { get; private set; } = Color.Yellow;
+        public static double FontScale
+        {
+            get
+            {
+                EnsureSettingsLoaded();
+                lock (SyncRoot)
+                {
+                    return fontScale;
+                }
+            }
+        }
 
-        public static double FontScale { get; private set; } = DefaultFontScale;
+        /// <summary>
+        /// Reloads the persisted style. This is called at application startup and whenever
+        /// the settings dialog opens, so values saved by an earlier run are restored.
+        /// </summary>
+        public static void LoadSavedSettings()
+        {
+            lock (SyncRoot)
+            {
+                LoadFromRegistry();
+                settingsLoaded = true;
+            }
+        }
 
         public static void Save(Color color, double fontScale)
         {
-            FontColor = color;
-            FontScale = Math.Max(0.3, Math.Min(2.0, fontScale));
+            double validatedFontScale = ClampFontScale(fontScale);
 
             ModifyRegistry registry = new ModifyRegistry();
             registry.Write(ColorRegistryKey, color.ToArgb().ToString(CultureInfo.InvariantCulture));
-            registry.Write(SizeRegistryKey, FontScale.ToString(CultureInfo.InvariantCulture));
+            registry.Write(SizeRegistryKey, validatedFontScale.ToString(CultureInfo.InvariantCulture));
+
+            lock (SyncRoot)
+            {
+                fontColor = color;
+                DrawingTextSettings.fontScale = validatedFontScale;
+                settingsLoaded = true;
+            }
         }
 
         public static void PutText(Mat image, string text, OpenCvSharp.Point origin,
             HersheyFonts fontFace, double ignoredFontScale, Scalar ignoredColor,
             int thickness = 1, LineTypes lineType = LineTypes.Link8, bool bottomLeftOrigin = false)
         {
-            Color color = FontColor;
+            EnsureSettingsLoaded();
+
+            Color color;
+            double savedFontScale;
+            lock (SyncRoot)
+            {
+                color = fontColor;
+                savedFontScale = fontScale;
+            }
+
             Scalar drawingColor = new Scalar(color.B, color.G, color.R);
-            Cv2.PutText(image, text, origin, fontFace, FontScale, drawingColor,
+            Cv2.PutText(image, text, origin, fontFace, savedFontScale, drawingColor,
                 thickness, lineType, bottomLeftOrigin);
         }
 
-        private static void Load()
+        private static void EnsureSettingsLoaded()
+        {
+            if (settingsLoaded)
+            {
+                return;
+            }
+
+            LoadSavedSettings();
+        }
+
+        private static void LoadFromRegistry()
         {
             ModifyRegistry registry = new ModifyRegistry();
+            fontColor = Color.Yellow;
+            fontScale = DefaultFontScale;
 
             int argb;
             if (int.TryParse(registry.Read(ColorRegistryKey), NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out argb))
             {
-                FontColor = Color.FromArgb(argb);
+                fontColor = Color.FromArgb(argb);
             }
 
             double fontScale;
             if (double.TryParse(registry.Read(SizeRegistryKey), NumberStyles.Float,
                 CultureInfo.InvariantCulture, out fontScale))
             {
-                FontScale = Math.Max(0.3, Math.Min(2.0, fontScale));
+                DrawingTextSettings.fontScale = ClampFontScale(fontScale);
             }
+        }
+
+        private static double ClampFontScale(double value)
+        {
+            return Math.Max(0.3, Math.Min(2.0, value));
         }
     }
 }

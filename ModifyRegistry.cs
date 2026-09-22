@@ -71,7 +71,8 @@ namespace Matric_scope
                 {
                     // If the RegistryKey exists I get its value
                     // or null is returned.
-                    return (string)sk1.GetValue(KeyName.ToUpper());
+                    object value = sk1.GetValue(KeyName.ToUpper());
+                    return value == null ? null : value.ToString();
                 }
                 catch (Exception e)
                 {

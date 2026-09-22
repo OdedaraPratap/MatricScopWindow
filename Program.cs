@@ -20,6 +20,7 @@ namespace Matric_scope
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
+                    DrawingTextSettings.LoadSavedSettings();
                     Application.Run(new FrmAuto());
                 }
                 else

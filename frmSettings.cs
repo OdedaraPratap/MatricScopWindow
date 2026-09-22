@@ -41,6 +41,7 @@ namespace Matric_scope
 
         private void LoadDrawingTextStyle()
         {
+            DrawingTextSettings.LoadSavedSettings();
             selectedDrawingTextColor = DrawingTextSettings.FontColor;
             btnDrawingTextColor.BackColor = selectedDrawingTextColor;
             nudDrawingTextSize.Value = Convert.ToDecimal(DrawingTextSettings.FontScale);
