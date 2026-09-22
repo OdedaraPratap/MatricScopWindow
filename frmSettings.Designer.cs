@@ -42,9 +42,15 @@
             this.btnTextDelete = new System.Windows.Forms.Button();
             this.btnTextUpdate = new System.Windows.Forms.Button();
             this.btnTextAdd = new System.Windows.Forms.Button();
+            this.lblDrawingText = new System.Windows.Forms.Label();
+            this.btnDrawingTextColor = new System.Windows.Forms.Button();
+            this.lblDrawingTextSize = new System.Windows.Forms.Label();
+            this.nudDrawingTextSize = new System.Windows.Forms.NumericUpDown();
+            this.btnApplyDrawingText = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRules)).BeginInit();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDrawingTextSize)).BeginInit();
             this.SuspendLayout();
             // 
             // dgvRules
@@ -91,9 +97,9 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(59, 5);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(131, 24);
+            this.label1.Size = new System.Drawing.Size(246, 24);
             this.label1.TabIndex = 17;
-            this.label1.Text = "Tray Settings";
+            this.label1.Text = "Tray && Drawing Settings";
             // 
             // cmbFile
             // 
@@ -108,6 +114,62 @@
             this.cmbFile.TabIndex = 19;
             this.cmbFile.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cmbFile_DrawItem);
             // 
+            // lblDrawingText
+            //
+            this.lblDrawingText.AutoSize = true;
+            this.lblDrawingText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold);
+            this.lblDrawingText.Location = new System.Drawing.Point(185, 43);
+            this.lblDrawingText.Name = "lblDrawingText";
+            this.lblDrawingText.Size = new System.Drawing.Size(69, 15);
+            this.lblDrawingText.TabIndex = 21;
+            this.lblDrawingText.Text = "Text color";
+            //
+            // btnDrawingTextColor
+            //
+            this.btnDrawingTextColor.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnDrawingTextColor.Location = new System.Drawing.Point(260, 38);
+            this.btnDrawingTextColor.Name = "btnDrawingTextColor";
+            this.btnDrawingTextColor.Size = new System.Drawing.Size(43, 25);
+            this.btnDrawingTextColor.TabIndex = 22;
+            this.btnDrawingTextColor.UseVisualStyleBackColor = false;
+            this.btnDrawingTextColor.Click += new System.EventHandler(this.btnDrawingTextColor_Click);
+            //
+            // lblDrawingTextSize
+            //
+            this.lblDrawingTextSize.AutoSize = true;
+            this.lblDrawingTextSize.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold);
+            this.lblDrawingTextSize.Location = new System.Drawing.Point(314, 43);
+            this.lblDrawingTextSize.Name = "lblDrawingTextSize";
+            this.lblDrawingTextSize.Size = new System.Drawing.Size(34, 15);
+            this.lblDrawingTextSize.TabIndex = 23;
+            this.lblDrawingTextSize.Text = "Size";
+            //
+            // nudDrawingTextSize
+            //
+            this.nudDrawingTextSize.DecimalPlaces = 2;
+            this.nudDrawingTextSize.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
+            this.nudDrawingTextSize.Location = new System.Drawing.Point(354, 40);
+            this.nudDrawingTextSize.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
+            this.nudDrawingTextSize.Minimum = new decimal(new int[] { 3, 0, 0, 65536 });
+            this.nudDrawingTextSize.Name = "nudDrawingTextSize";
+            this.nudDrawingTextSize.Size = new System.Drawing.Size(57, 20);
+            this.nudDrawingTextSize.TabIndex = 24;
+            this.nudDrawingTextSize.Value = new decimal(new int[] { 55, 0, 0, 131072 });
+            //
+            // btnApplyDrawingText
+            //
+            this.btnApplyDrawingText.BackColor = System.Drawing.Color.FromArgb(255, 128, 0);
+            this.btnApplyDrawingText.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnApplyDrawingText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold);
+            this.btnApplyDrawingText.ForeColor = System.Drawing.Color.White;
+            this.btnApplyDrawingText.Location = new System.Drawing.Point(421, 37);
+            this.btnApplyDrawingText.Name = "btnApplyDrawingText";
+            this.btnApplyDrawingText.Size = new System.Drawing.Size(116, 27);
+            this.btnApplyDrawingText.TabIndex = 25;
+            this.btnApplyDrawingText.Text = "Apply text style";
+            this.btnApplyDrawingText.UseVisualStyleBackColor = false;
+            this.btnApplyDrawingText.Click += new System.EventHandler(this.btnApplyDrawingText_Click);
+            //
             // btnDeleteEntireFile
             // 
             this.btnDeleteEntireFile.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
@@ -211,6 +273,11 @@
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(708, 664);
             this.Controls.Add(this.btnDeleteEntireFile);
+            this.Controls.Add(this.btnApplyDrawingText);
+            this.Controls.Add(this.nudDrawingTextSize);
+            this.Controls.Add(this.lblDrawingTextSize);
+            this.Controls.Add(this.btnDrawingTextColor);
+            this.Controls.Add(this.lblDrawingText);
             this.Controls.Add(this.cmbFile);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.btnTextDelete);
@@ -225,6 +292,7 @@
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDrawingTextSize)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -242,5 +310,10 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.ComboBox cmbFile;
         private System.Windows.Forms.Button btnDeleteEntireFile;
+        private System.Windows.Forms.Label lblDrawingText;
+        private System.Windows.Forms.Button btnDrawingTextColor;
+        private System.Windows.Forms.Label lblDrawingTextSize;
+        private System.Windows.Forms.NumericUpDown nudDrawingTextSize;
+        private System.Windows.Forms.Button btnApplyDrawingText;
     }
 }

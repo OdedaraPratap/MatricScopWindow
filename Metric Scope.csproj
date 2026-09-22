@@ -185,6 +185,7 @@
       <DependentUpon>CustomShapeForm.cs</DependentUpon>
     </Compile>
     <Compile Include="DatabaseHelper.cs" />
+    <Compile Include="DrawingTextSettings.cs" />
     <Compile Include="frmAuto.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -371,7 +371,7 @@ namespace Matric_scope
                 double widthMm = widthPixels * pixelToMmRatio;
 
                 OpenCvSharp.Point wMid = new OpenCvSharp.Point((wPt1.Value.X + wPt2.Value.X) / 2, (wPt1.Value.Y + wPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{widthMm:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
+                DrawingTextSettings.PutText(displayFrame, $"{widthMm:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
             }
 
@@ -384,7 +384,7 @@ namespace Matric_scope
                 double lengthMm = lengthPixels * pixelToMmRatio;
 
                 OpenCvSharp.Point lMid = new OpenCvSharp.Point((lPt1.Value.X + lPt2.Value.X) / 2, (lPt1.Value.Y + lPt2.Value.Y) / 2);
-                Cv2.PutText(displayFrame, $"{lengthMm:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
+                DrawingTextSettings.PutText(displayFrame, $"{lengthMm:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
             }
 

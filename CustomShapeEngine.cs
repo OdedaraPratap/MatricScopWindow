@@ -146,11 +146,11 @@ namespace Matric_scope
                 OpenCvSharp.Point lMid = new OpenCvSharp.Point((calcL1.X + calcL2.X) / 2, (calcL1.Y + calcL2.Y) / 2);
 
                 // Draw Width Text (Red) slightly offset from the line
-                Cv2.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
+                DrawingTextSettings.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
 
                 // Draw Length Text (Blue) slightly offset from the line
-                Cv2.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
+                DrawingTextSettings.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
 
                 frame.ImWrite("CUSTOMS.png");
