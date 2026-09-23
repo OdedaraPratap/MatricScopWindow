@@ -79,7 +79,7 @@ namespace Matric_scope
                 boxWidthMM = ApplyVariation(boxWidthMM, false);
 
                 Point pBoxText = new Point(15, 35);
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -187,7 +187,7 @@ namespace Matric_scope
                 boxWidthMM = ApplyVariation(boxWidthMM, false);
 
                 Point pBoxText = new Point(15, 35);
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -321,8 +321,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -416,8 +416,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -589,9 +589,9 @@ namespace Matric_scope
                 Point widTextPt = new Point(leftPoint.X + 15, leftPoint.Y - 15);
                 Point dipTextPt = new Point(cleft.X - 35, cleft.Y + 25);
 
-                Cv2.PutText(src, $"Total L: {lengthMM:F2}mm", lenTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"Dip: {dipDepthMM:F2}mm", dipTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Orange, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Total L: {lengthMM:F2}mm", lenTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Dip: {dipDepthMM:F2}mm", dipTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Orange, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // 6. CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -726,8 +726,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -872,8 +872,8 @@ namespace Matric_scope
                 // Draw the smooth, un-chopped rubber band hull
                 Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1017,8 +1017,8 @@ namespace Matric_scope
                 // Draw the exact raw contour (no stretching or smoothing)
                 Cv2.Polylines(src, new[] { rawContour }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1127,8 +1127,8 @@ namespace Matric_scope
 
                 Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(center.X + 25, center.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widStart.X + 15, widStart.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(center.X + 25, center.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widStart.X + 15, widStart.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1253,8 +1253,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING

@@ -1806,7 +1806,7 @@ namespace Matric_scope
                 Cv2.Circle(src, (int)targetCircle.Center.X, (int)targetCircle.Center.Y, 5, Scalar.Red, -1);
                 //src.SaveImage("round.png");
                 OpenCvSharp.Point textPosition = new OpenCvSharp.Point((int)targetCircle.Center.X + 15, (int)targetCircle.Center.Y + 5);
-                Cv2.PutText(src, $"{realSize:F2} mm",textPosition,HersheyFonts.HersheySimplex,0.6,Scalar.Yellow,2);
+                DrawingTextSettings.PutText(src, $"{realSize:F2} mm",textPosition,HersheyFonts.HersheySimplex,0.6,Scalar.Yellow,2);
                 src.ImWrite("Circle.png");
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -1878,8 +1878,8 @@ namespace Matric_scope
                         Cv2.Circle(src, centerX, centerY, 3, Scalar.Red, -1, LineTypes.AntiAlias);
 
                         // Overlay the calculated PPMs on the image for debugging
-                        Cv2.PutText(src, $"ppmX: {ppmX:F3}", new OpenCvSharp.Point(10, 30), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
-                        Cv2.PutText(src, $"ppmY: {ppmY:F3}", new OpenCvSharp.Point(10, 60), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
+                        DrawingTextSettings.PutText(src, $"ppmX: {ppmX:F3}", new OpenCvSharp.Point(10, 30), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
+                        DrawingTextSettings.PutText(src, $"ppmY: {ppmY:F3}", new OpenCvSharp.Point(10, 60), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
 
                         src.ImWrite("calib_result.png");
 
@@ -2012,7 +2012,7 @@ namespace Matric_scope
                         Cv2.Circle(src, (int)Math.Round(center.X), (int)Math.Round(center.Y), 4, Scalar.Red, -1, LineTypes.AntiAlias);
 
                         OpenCvSharp.Point textPosition = new OpenCvSharp.Point((int)Math.Round(center.X) + 15, (int)Math.Round(center.Y) + 5);
-                        Cv2.PutText(src, $"{realSize:F2} mm", textPosition, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                        DrawingTextSettings.PutText(src, $"{realSize:F2} mm", textPosition, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                         // ==========================================================
                         // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING

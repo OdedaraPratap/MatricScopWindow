@@ -29,12 +29,43 @@ namespace Matric_scope
         
         private bool isInitializing = true;
         private bool isSavingChanges = false;
+        private Color selectedDrawingTextColor;
         
         public frmSettings()
         {
             InitializeComponent();
             InitializeDataSchema();
             SetupUI();
+            LoadDrawingTextStyle();
+        }
+
+        private void LoadDrawingTextStyle()
+        {
+            DrawingTextSettings.LoadSavedSettings();
+            selectedDrawingTextColor = DrawingTextSettings.FontColor;
+            btnDrawingTextColor.BackColor = selectedDrawingTextColor;
+            nudDrawingTextSize.Value = Convert.ToDecimal(DrawingTextSettings.FontScale);
+        }
+
+        private void btnDrawingTextColor_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog dialog = new ColorDialog())
+            {
+                dialog.Color = selectedDrawingTextColor;
+                dialog.FullOpen = true;
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    selectedDrawingTextColor = dialog.Color;
+                    btnDrawingTextColor.BackColor = dialog.Color;
+                }
+            }
+        }
+
+        private void btnApplyDrawingText_Click(object sender, EventArgs e)
+        {
+            DrawingTextSettings.Save(selectedDrawingTextColor, Convert.ToDouble(nudDrawingTextSize.Value));
+            MessageBox.Show("Live drawing font color and size updated.", "Text Style",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void SaveToXml()

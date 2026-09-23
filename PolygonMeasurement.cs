@@ -131,7 +131,7 @@ namespace Matric_scope
                 sb.Append($"Side {i + 1}: {mmDistance:F2} mm ");
 
                 Point mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
-                Cv2.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 1);
+                DrawingTextSettings.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 1);
             }
 
             // ==========================================
@@ -148,7 +148,7 @@ namespace Matric_scope
                 sb.Append($"Angle {i + 1}: {angle:F1}°");
 
                 Cv2.Circle(src, current, 5, Scalar.Red, -1);
-                Cv2.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.7, Scalar.Cyan, 1);
+                DrawingTextSettings.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.7, Scalar.Cyan, 1);
             }
 
             // ==========================================
@@ -348,7 +348,7 @@ namespace Matric_scope
                     //sb.Append($"Side {i + 1}: {mmDistance:F2} mm ");
 
                     Point mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
-                    Cv2.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1);
+                    DrawingTextSettings.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1);
                 }
 
                 // Measure Angles
@@ -363,7 +363,7 @@ namespace Matric_scope
                     //sb.Append($"Angle {i + 1}: {angle:F1}°");
 
                     Cv2.Circle(src, current, 4, Scalar.Red, -1);
-                    Cv2.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1);
+                    DrawingTextSettings.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1);
                 }
 
                 src.ImWrite("Polygon_Result.png");
@@ -527,7 +527,7 @@ namespace Matric_scope
                     double mmDistance = pixelDistance / ppm;
 
                     Point mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
-                    Cv2.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1);
+                    DrawingTextSettings.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1);
                 }
 
                 // Measure Angles & Draw Text Overlay
@@ -540,7 +540,7 @@ namespace Matric_scope
                     double angle = CalculateAngle(prev, current, next);
 
                     Cv2.Circle(src, current, 4, Scalar.Red, -1);
-                    Cv2.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1);
+                    DrawingTextSettings.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1);
                 }
 
                 src.ImWrite("Polygon_Result.png");
@@ -708,7 +708,7 @@ namespace Matric_scope
                     double mmDistance = pixelDistance / ppm;
 
                     Point mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
-                    Cv2.PutText(src, $"{mmDistance:F2}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
+                    DrawingTextSettings.PutText(src, $"{mmDistance:F2}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
                 }
 
                 // Measure Angles & Draw Text Overlay
@@ -721,7 +721,7 @@ namespace Matric_scope
                     double angle = CalculateAngle(prev, current, next);
 
                     Cv2.Circle(src, current, 3, Scalar.Red, -1, LineTypes.AntiAlias);
-                    Cv2.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
+                    DrawingTextSettings.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
                 }
 
                 // ==========================================================
