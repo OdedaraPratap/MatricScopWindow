@@ -1,18 +1,46 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "F:\\Matric Scope\\Metric Scope\\",
+  "WorkspaceRootPath": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\Metric Scope\\frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|f:\\matric scope\\matricscopwindow-codex-add-form-for-manual-measurement-lines\\matricscopwindow try 1 custome\\customshapeengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:customshapeengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\Metric Scope\\frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|f:\\matric scope\\matricscopwindow-codex-add-form-for-manual-measurement-lines\\matricscopwindow try 1 custome\\customshapeform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:customshapeform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|f:\\matric scope\\matricscopwindow-codex-add-form-for-manual-measurement-lines\\matricscopwindow try 1 custome\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\measurepearshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:measurepearshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|f:\\matric scope\\metric scope\\measurepearshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:measurepearshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\passwordform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:passwordform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\passwordform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:passwordform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\polygonmeasurement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:polygonmeasurement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\manualmeasurementform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:manualmeasurementform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7EC1BF22-8E86-4CAF-AFF9-2D8359501D34}|Metric Scope.csproj|solutionrelative:frmauto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,45 +50,128 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "MeasurePearShape.cs",
-              "DocumentMoniker": "F:\\Matric Scope\\Metric Scope\\MeasurePearShape.cs",
-              "RelativeDocumentMoniker": "MeasurePearShape.cs",
-              "ToolTip": "F:\\Matric Scope\\Metric Scope\\MeasurePearShape.cs",
-              "RelativeToolTip": "MeasurePearShape.cs",
-              "ViewState": "AgIAAPYDAAAAAAAAAAAkwAUEAABNAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "CustomShapeEngine.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\CustomShapeEngine.cs",
+              "RelativeDocumentMoniker": "CustomShapeEngine.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\CustomShapeEngine.cs",
+              "RelativeToolTip": "CustomShapeEngine.cs",
+              "ViewState": "AgIAAHECAAAAAAAAAAAUwIMCAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-01T10:32:32.526Z",
+              "WhenOpened": "2026-09-23T09:57:42.766Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "frmAuto.cs",
-              "DocumentMoniker": "F:\\Matric Scope\\Metric Scope\\frmAuto.cs",
-              "RelativeDocumentMoniker": "frmAuto.cs",
-              "ToolTip": "F:\\Matric Scope\\Metric Scope\\frmAuto.cs",
-              "RelativeToolTip": "frmAuto.cs",
-              "ViewState": "AgIAAAIEAAAAAAAAAAAgwB0EAABBAAAAAAAAAA==",
+              "Title": "CustomShapeForm.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\CustomShapeForm.cs",
+              "RelativeDocumentMoniker": "CustomShapeForm.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\CustomShapeForm.cs",
+              "RelativeToolTip": "CustomShapeForm.cs",
+              "ViewState": "AgIAADECAAAAAAAAAAAYwEUCAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-22T06:27:44.338Z",
+              "WhenOpened": "2026-09-23T05:51:45.487Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "frmAuto.cs [Design]",
-              "DocumentMoniker": "F:\\Matric Scope\\Metric Scope\\frmAuto.cs",
-              "RelativeDocumentMoniker": "frmAuto.cs",
-              "ToolTip": "F:\\Matric Scope\\Metric Scope\\frmAuto.cs [Design]",
-              "RelativeToolTip": "frmAuto.cs [Design]",
+              "DocumentIndex": 2,
+              "Title": "DatabaseHelper.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\DatabaseHelper.cs",
+              "RelativeDocumentMoniker": "DatabaseHelper.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\DatabaseHelper.cs",
+              "RelativeToolTip": "DatabaseHelper.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAcwHgAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-20T13:08:02.903Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2026-09-23T03:56:55.192Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PasswordForm.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\PasswordForm.cs",
+              "RelativeDocumentMoniker": "PasswordForm.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\PasswordForm.cs",
+              "RelativeToolTip": "PasswordForm.cs",
+              "ViewState": "AgIAAI4AAAAAAAAAAAAvwJUAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-19T05:08:45.364Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "PasswordForm.cs [Design]",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\PasswordForm.cs",
+              "RelativeDocumentMoniker": "PasswordForm.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\PasswordForm.cs [Design]",
+              "RelativeToolTip": "..\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\PasswordForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-19T05:08:41.742Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PolygonMeasurement.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\PolygonMeasurement.cs",
+              "RelativeDocumentMoniker": "PolygonMeasurement.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\PolygonMeasurement.cs",
+              "RelativeToolTip": "PolygonMeasurement.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMDAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T05:48:52.424Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ManualMeasurementForm.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\ManualMeasurementForm.cs",
+              "RelativeDocumentMoniker": "ManualMeasurementForm.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\ManualMeasurementForm.cs",
+              "RelativeToolTip": "ManualMeasurementForm.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAASwDEAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T03:44:58.734Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MeasurePearShape.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\MeasurePearShape.cs",
+              "RelativeDocumentMoniker": "MeasurePearShape.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\MeasurePearShape.cs",
+              "RelativeToolTip": "MeasurePearShape.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBUAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T10:32:32.526Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "frmAuto.cs",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\frmAuto.cs",
+              "RelativeDocumentMoniker": "frmAuto.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\frmAuto.cs",
+              "RelativeToolTip": "frmAuto.cs",
+              "ViewState": "AgIAADgFAAAAAAAAAAASwE0FAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-22T06:27:44.338Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "frmAuto.cs [Design]",
+              "DocumentMoniker": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow try 1 custome\\frmAuto.cs",
+              "RelativeDocumentMoniker": "frmAuto.cs",
+              "ToolTip": "F:\\Matric Scope\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\frmAuto.cs [Design]",
+              "RelativeToolTip": "..\\MatricScopWindow-codex-add-form-for-manual-measurement-lines\\frmAuto.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-20T13:08:02.903Z"
             }
           ]
         }

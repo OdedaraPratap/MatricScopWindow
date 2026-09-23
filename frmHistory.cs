@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -66,17 +67,16 @@ namespace Matric_scope
                 // Numeric threshold validations
                 if (double.TryParse(txtFilterLength.Text, out double minLength))
                 {
-                    rowFilterString += $" AND Length >= {minLength}";
+                    rowFilterString += $" AND Length >= {minLength.ToString(CultureInfo.InvariantCulture)}";
                 }
                 if (double.TryParse(txtFilterWidth.Text, out double minWidth))
                 {
-                    rowFilterString += $" AND Width >= {minWidth}";
+                    rowFilterString += $" AND Width >= {minWidth.ToString(CultureInfo.InvariantCulture)}";
                 }
-
-                rowFilterString += "ORDER BY ID DESC";
 
                 // Execute the generated dynamic string mapping assignment directly into the UI DataView
                 dataTable.DefaultView.RowFilter = rowFilterString;
+                dataTable.DefaultView.Sort = "ID DESC";
             }
             catch (Exception ex)
             {
@@ -518,6 +518,99 @@ namespace Matric_scope
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
             }
+        }
+
+        private void btnExportExcel_Click(object sender, EventArgs e)
+        {
+            if (dataTable.DefaultView.Count == 0)
+            {
+                MessageBox.Show("There are no history records to export for the current filters.",
+                                "Nothing to Export",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information);
+                return;
+            }
+
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Title = "Export History to Excel";
+                saveDialog.Filter = "Excel-compatible CSV (*.csv)|*.csv";
+                saveDialog.DefaultExt = "csv";
+                saveDialog.AddExtension = true;
+                saveDialog.FileName = $"Gemstone_History_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+
+                if (saveDialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    ExportFilteredHistory(saveDialog.FileName);
+                    MessageBox.Show($"{dataTable.DefaultView.Count} history record(s) exported successfully.\n\n{saveDialog.FileName}",
+                                    "Export Complete",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"The history data could not be exported.\n\n{ex.Message}",
+                                    "Export Error",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void ExportFilteredHistory(string filePath)
+        {
+            string[] exportColumns = { "ID", "Date", "Shape", "Length", "Width" };
+
+            // UTF-8 with a byte-order mark allows Excel to display non-ASCII shape names correctly.
+            using (StreamWriter writer = new StreamWriter(filePath, false, new UTF8Encoding(true)))
+            {
+                writer.WriteLine(string.Join(",", exportColumns.Select(EscapeCsvValue)));
+
+                foreach (DataRowView rowView in dataTable.DefaultView)
+                {
+                    IEnumerable<string> values = exportColumns.Select(columnName =>
+                        EscapeCsvValue(FormatExportValue(rowView.Row[columnName])));
+                    writer.WriteLine(string.Join(",", values));
+                }
+            }
+        }
+
+        private static string FormatExportValue(object value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                return string.Empty;
+            }
+
+            if (value is DateTime dateValue)
+            {
+                return dateValue.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            }
+
+            if (value is IFormattable formattable)
+            {
+                return formattable.ToString(null, CultureInfo.InvariantCulture);
+            }
+
+            return value.ToString();
+        }
+
+        private static string EscapeCsvValue(string value)
+        {
+            string safeValue = value ?? string.Empty;
+
+            // Prevent spreadsheet applications from treating exported text as a formula.
+            if (safeValue.Length > 0 && "=+-@".IndexOf(safeValue[0]) >= 0)
+            {
+                safeValue = "'" + safeValue;
+            }
+
+            return "\"" + safeValue.Replace("\"", "\"\"") + "\"";
         }
     }
 }

@@ -583,8 +583,9 @@ namespace Matric_scope
 
                 using (Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(5, 5)))
                 {
+                    // Closing fills small gaps without eroding the polygon tips.
+                    // A subsequent 5x5 opening rounded those tips inward.
                     Cv2.MorphologyEx(thresh, thresh, MorphTypes.Close, kernel);
-                    Cv2.MorphologyEx(thresh, thresh, MorphTypes.Open, kernel);
                 }
 
                 // ==========================================
@@ -607,7 +608,9 @@ namespace Matric_scope
                 Point[] hull = Cv2.ConvexHull(largestContour);
 
                 double perimeter = Cv2.ArcLength(hull, true);
-                double epsilon = 0.02 * perimeter;
+                // Keep the corner approximation tight. A large epsilon cuts across the
+                // real tips and makes both the overlay and measurements appear inset.
+                double epsilon = 0.01 * perimeter;
                 Point[] polygon = Cv2.ApproxPolyDP(hull, epsilon, true);
 
                 if (polygon.Length < 3) return "Invalid Polygon Corners";
@@ -616,19 +619,22 @@ namespace Matric_scope
                 // 5. TRUE TIP-TO-TIP VECTOR BOUNDING BOX
                 // ==========================================
                 double maxDistSq = 0;
-                Point tip1 = polygon[0];
-                Point tip2 = polygon[0];
+                Point tip1 = hull[0];
+                Point tip2 = hull[0];
 
-                for (int i = 0; i < polygon.Length; i++)
+                // Measure against the full convex hull, not the simplified polygon.
+                // ApproxPolyDP remains useful for identifying sides and angles, but its
+                // reduced vertex set can omit the silhouette's outermost boundary points.
+                for (int i = 0; i < hull.Length; i++)
                 {
-                    for (int j = i + 1; j < polygon.Length; j++)
+                    for (int j = i + 1; j < hull.Length; j++)
                     {
-                        double dSq = Math.Pow(polygon[i].X - polygon[j].X, 2) + Math.Pow(polygon[i].Y - polygon[j].Y, 2);
+                        double dSq = Math.Pow(hull[i].X - hull[j].X, 2) + Math.Pow(hull[i].Y - hull[j].Y, 2);
                         if (dSq > maxDistSq)
                         {
                             maxDistSq = dSq;
-                            tip1 = polygon[i];
-                            tip2 = polygon[j];
+                            tip1 = hull[i];
+                            tip2 = hull[j];
                         }
                     }
                 }
@@ -642,10 +648,11 @@ namespace Matric_scope
                 double nx = uy;
                 double ny = -ux;
 
-                double maxLeftDist = 0;
-                double maxRightDist = 0;
+                double maxLeftDist = double.NegativeInfinity;
+                double maxRightDist = double.PositiveInfinity;
 
-                foreach (Point p in polygon)
+                // Project every boundary point so width reaches both outer support edges.
+                foreach (Point p in hull)
                 {
                     double px = p.X - tip1.X;
                     double py = p.Y - tip1.Y;
@@ -679,6 +686,7 @@ namespace Matric_scope
 
                 generalLengthMM = ApplyVariation(generalLengthMM, true);
                 generalWidthMM = ApplyVariation(generalWidthMM, false);
+
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"Length: {generalLengthMM:F2} mm");
                 sb.AppendLine($"Width : {generalWidthMM:F2} mm");
@@ -690,13 +698,10 @@ namespace Matric_scope
                 Cv2.Polylines(src, new[] { boxPoints }, true, Scalar.Red, 1, LineTypes.AntiAlias);
                 Cv2.Line(src, tip1, tip2, Scalar.Orange, 1, LineTypes.AntiAlias);
 
-                // Draw Polygon Vectors (Green Border) LAST with thickness 2 to mask line bleeding
-                for (int i = 0; i < polygon.Length; i++)
-                {
-                    Point p1 = polygon[i];
-                    Point p2 = polygon[(i + 1) % polygon.Length];
-                    Cv2.Line(src, p1, p2, Scalar.Lime, 2, LineTypes.AntiAlias);
-                }
+                // Draw the full detected hull last. The simplified polygon is correct for
+                // side/angle labels, but joining only its reduced vertices draws chords
+                // inside the real silhouette and makes the green outline look inset.
+                Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
                 // Measure Sides & Draw Text Overlay
                 for (int i = 0; i < polygon.Length; i++)
@@ -721,7 +726,7 @@ namespace Matric_scope
                     double angle = CalculateAngle(prev, current, next);
 
                     Cv2.Circle(src, current, 3, Scalar.Red, -1, LineTypes.AntiAlias);
-                    Cv2.PutText(src, $"{angle:F2}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
+                    Cv2.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
                 }
 
                 // ==========================================================
@@ -729,11 +734,11 @@ namespace Matric_scope
                 // ==========================================================
                 using (Mat printCanvas = new Mat(src.Size(), MatType.CV_8UC3, Scalar.White))
                 {
-                    // Draw ONLY the polygon shape outline in thick black
-                    Cv2.Polylines(printCanvas, new[] { polygon }, true, Scalar.Black, 3, LineTypes.AntiAlias);
+                    // Use the same full outer hull that is displayed on screen.
+                    Cv2.Polylines(printCanvas, new[] { hull }, true, Scalar.Black, 3, LineTypes.AntiAlias);
 
                     // Find the bounding box to crop away empty white space
-                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(polygon);
+                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(hull);
 
                     // Add a 15-pixel margin around the shape
                     cropRect.Inflate(15, 15);
@@ -752,6 +757,7 @@ namespace Matric_scope
                 return sb.ToString();
             }
         }
+        
         static double Distance(Point p1, Point p2)
         {
             return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
@@ -787,10 +793,8 @@ namespace Matric_scope
 
         private static double ApplyVariation(double rawMeasurementMM, bool isLength)
         {
-            // Find which range the measurement falls into (e.g., 4.2mm falls into index 4 (4 to 5 mm))
             int rangeIndex = (int)Math.Floor(rawMeasurementMM);
 
-            // Cap it at 24 so anything 24mm or higher uses the last box
             if (rangeIndex > 24) rangeIndex = 24;
             if (rangeIndex < 0) rangeIndex = 0;
 
@@ -807,10 +811,13 @@ namespace Matric_scope
                     variation = Convert.ToDouble(val);
                 }
             }
-            catch { }
+            catch
+            {
+                // Keep the raw calibrated measurement if no valid variation is stored.
+            }
 
-            // Add the variation to the original measurement
             return rawMeasurementMM + variation;
         }
+
     }
 }
