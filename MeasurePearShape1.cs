@@ -263,8 +263,8 @@ namespace Matric_scope
                 Point pVertexText = new Point(15, 85);
 
                 // Overlay Text Blocks onto frame
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm (Red Box)", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 1, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm (Cross)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm (Red Box)", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm (Cross)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
 
                 // Save to file system
                 src.ImWrite("Combined_Shape_Result.png");
@@ -363,7 +363,7 @@ namespace Matric_scope
 
                 // Overlay Text Label on Frame
                 Point pBoxText = new Point(15, 35);
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm (Red Box)", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm (Red Box)", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 1, LineTypes.AntiAlias);
 
                 src.ImWrite("Box_Shape_Result.png");
 
@@ -613,8 +613,8 @@ namespace Matric_scope
             Point lengthMidPoint = new Point((tip1.X + tip2.X) / 2 + 20, (tip1.Y + tip2.Y) / 2 - 15);
             Point widthMidPoint = new Point((widthPoint1.X + widthPoint2.X) / 2 - 80, (widthPoint1.Y + widthPoint2.Y) / 2 + 25);
 
-            Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
-            Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
+            DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
+            DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
 
             src.ImWrite("Marquise_Result.png");
 
@@ -701,8 +701,8 @@ namespace Matric_scope
                 Cv2.Line(src, new Point(widthLeft.X, middleY), new Point(widthRight.X, middleY), Scalar.Yellow, 2);
 
                 // Text rendering right on the canvas frame
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -822,8 +822,8 @@ namespace Matric_scope
                 Cv2.Circle(src, centroid, 5, Scalar.Orange, -1);
 
                 // Draw measurement text next to the axis lines
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2);
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -919,7 +919,7 @@ namespace Matric_scope
 
                 // 3. Overlay the Text above the box
                 Point textLocation = new Point(boxPoints[1].X - 20, boxPoints[1].Y - 15);
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm | W: {widthMM:F2}mm", textLocation, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm | W: {widthMM:F2}mm", textLocation, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
 
                 src.ImWrite("Marquise_Result.png");
 
@@ -1058,8 +1058,8 @@ namespace Matric_scope
                 Point lengthMidPoint = new Point((tip1.X + tip2.X) / 2 + 20, (tip1.Y + tip2.Y) / 2 - 15);
                 Point widthMidPoint = new Point((widthPoint1.X + widthPoint2.X) / 2 - 80, (widthPoint1.Y + widthPoint2.Y) / 2 + 25);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 src.ImWrite("Marquise_Result.png");
 
@@ -1190,7 +1190,7 @@ namespace Matric_scope
 
                 // Overlay Text Label on Frame
                 Point pVertexText = new Point(15, 35);
-                Cv2.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm (Cross)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm (Cross)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
 
                 src.ImWrite("Axis_Shape_Result.png");
 
@@ -1239,7 +1239,7 @@ namespace Matric_scope
 
                 // Overlay Text Label on Frame
                 Point pVertexText = new Point(15, 35);
-                Cv2.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm", pVertexText, HersheyFonts.HersheySimplex, 0.55, new Scalar(0, 255, 255), 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Axis L: {vertexLengthMM:F2}mm | W: {vertexWidthMM:F2}mm", pVertexText, HersheyFonts.HersheySimplex, 0.55, new Scalar(0, 255, 255), 1, LineTypes.AntiAlias);
 
                 // Save the result using OpenCvSharp's standard ImWrite
                 Cv2.ImWrite("Axis_Shape_Result.png", src);
@@ -1393,7 +1393,7 @@ namespace Matric_scope
                     double mmDistance = pixelDistance / ppm;
 
                     Point mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
-                    Cv2.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
+                    DrawingTextSettings.PutText(src, $"{mmDistance:F1}mm", mid, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
                 }
 
                 // Measure Angles & Draw Text
@@ -1420,12 +1420,12 @@ namespace Matric_scope
                     }
 
                     Cv2.Circle(src, current, 4, Scalar.Red, -1);
-                    Cv2.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
+                    DrawingTextSettings.PutText(src, $"{angle:F1}°", new Point(current.X + 10, current.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 1, LineTypes.AntiAlias);
                 }
 
                 // Overlay Main Output Text Label on Frame
                 Point pVertexText = new Point(15, 35);
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm | W: {widthMM:F2}mm (Gauge)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm | W: {widthMM:F2}mm (Gauge)", pVertexText, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 1, LineTypes.AntiAlias);
 
                 src.ImWrite("Axis_Shape_Result.png");
 

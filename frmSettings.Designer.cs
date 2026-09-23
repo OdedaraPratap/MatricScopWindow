@@ -42,13 +42,19 @@
             this.btnTextDelete = new System.Windows.Forms.Button();
             this.btnTextUpdate = new System.Windows.Forms.Button();
             this.btnTextAdd = new System.Windows.Forms.Button();
+            this.lblDrawingTextColor = new System.Windows.Forms.Label();
+            this.btnDrawingTextColor = new System.Windows.Forms.Button();
+            this.lblDrawingTextSize = new System.Windows.Forms.Label();
+            this.nudDrawingTextSize = new System.Windows.Forms.NumericUpDown();
+            this.drawingTextColorDialog = new System.Windows.Forms.ColorDialog();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRules)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDrawingTextSize)).BeginInit();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
-            // 
+            //
             // dgvRules
-            // 
+            //
             this.dgvRules.BackgroundColor = System.Drawing.Color.White;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
@@ -67,13 +73,13 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgvRules.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvRules.Location = new System.Drawing.Point(10, 67);
+            this.dgvRules.Location = new System.Drawing.Point(10, 105);
             this.dgvRules.Name = "dgvRules";
-            this.dgvRules.Size = new System.Drawing.Size(686, 517);
+            this.dgvRules.Size = new System.Drawing.Size(686, 479);
             this.dgvRules.TabIndex = 0;
-            // 
+            //
             // panel3
-            // 
+            //
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
             this.panel3.Controls.Add(this.label1);
             this.panel3.Controls.Add(this.pictureBox2);
@@ -84,9 +90,9 @@
             this.panel3.Size = new System.Drawing.Size(710, 32);
             this.panel3.TabIndex = 17;
             this.panel3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel3_MouseDown);
-            // 
+            //
             // label1
-            // 
+            //
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(59, 5);
@@ -94,9 +100,9 @@
             this.label1.Size = new System.Drawing.Size(131, 24);
             this.label1.TabIndex = 17;
             this.label1.Text = "Tray Settings";
-            // 
+            //
             // cmbFile
-            // 
+            //
             this.cmbFile.BackColor = System.Drawing.Color.White;
             this.cmbFile.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.cmbFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -107,9 +113,9 @@
             this.cmbFile.Size = new System.Drawing.Size(138, 27);
             this.cmbFile.TabIndex = 19;
             this.cmbFile.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cmbFile_DrawItem);
-            // 
+            //
             // btnDeleteEntireFile
-            // 
+            //
             this.btnDeleteEntireFile.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.btnDeleteEntireFile.BackgroundImage = global::Matric_scope.Properties.Resources.DELETE_FILE;
             this.btnDeleteEntireFile.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -122,9 +128,9 @@
             this.btnDeleteEntireFile.TabIndex = 20;
             this.btnDeleteEntireFile.UseVisualStyleBackColor = false;
             this.btnDeleteEntireFile.Click += new System.EventHandler(this.btnDeleteEntireFile_Click);
-            // 
+            //
             // pictureBox2
-            // 
+            //
             this.pictureBox2.Image = global::Matric_scope.Properties.Resources.Logo__2_;
             this.pictureBox2.Location = new System.Drawing.Point(7, 0);
             this.pictureBox2.Name = "pictureBox2";
@@ -132,9 +138,9 @@
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 16;
             this.pictureBox2.TabStop = false;
-            // 
+            //
             // btnMin
-            // 
+            //
             this.btnMin.BackColor = System.Drawing.Color.Transparent;
             this.btnMin.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnMin.BackgroundImage")));
             this.btnMin.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -145,9 +151,9 @@
             this.btnMin.TabIndex = 15;
             this.btnMin.UseVisualStyleBackColor = false;
             this.btnMin.Click += new System.EventHandler(this.btnMin_Click);
-            // 
+            //
             // button3
-            // 
+            //
             this.button3.BackColor = System.Drawing.Color.Transparent;
             this.button3.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button3.BackgroundImage")));
             this.button3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -158,9 +164,9 @@
             this.button3.TabIndex = 14;
             this.button3.UseVisualStyleBackColor = false;
             this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
+            //
             // btnTextDelete
-            // 
+            //
             this.btnTextDelete.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.btnTextDelete.BackgroundImage = global::Matric_scope.Properties.Resources.DELETE;
             this.btnTextDelete.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -173,9 +179,9 @@
             this.btnTextDelete.TabIndex = 14;
             this.btnTextDelete.UseVisualStyleBackColor = false;
             this.btnTextDelete.Click += new System.EventHandler(this.btnTextDelete_Click);
-            // 
+            //
             // btnTextUpdate
-            // 
+            //
             this.btnTextUpdate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.btnTextUpdate.BackgroundImage = global::Matric_scope.Properties.Resources.SAVE;
             this.btnTextUpdate.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -188,9 +194,9 @@
             this.btnTextUpdate.TabIndex = 13;
             this.btnTextUpdate.UseVisualStyleBackColor = false;
             this.btnTextUpdate.Click += new System.EventHandler(this.btnTextUpdate_Click);
-            // 
+            //
             // btnTextAdd
-            // 
+            //
             this.btnTextAdd.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.btnTextAdd.BackgroundImage = global::Matric_scope.Properties.Resources.ADD_FILE;
             this.btnTextAdd.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -203,13 +209,60 @@
             this.btnTextAdd.TabIndex = 12;
             this.btnTextAdd.UseVisualStyleBackColor = false;
             this.btnTextAdd.Click += new System.EventHandler(this.btnTextAdd_Click);
-            // 
+            //
+            // lblDrawingTextColor
+            //
+            this.lblDrawingTextColor.AutoSize = true;
+            this.lblDrawingTextColor.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDrawingTextColor.Location = new System.Drawing.Point(205, 42);
+            this.lblDrawingTextColor.Name = "lblDrawingTextColor";
+            this.lblDrawingTextColor.Size = new System.Drawing.Size(83, 17);
+            this.lblDrawingTextColor.TabIndex = 21;
+            this.lblDrawingTextColor.Text = "Text color:";
+            //
+            // btnDrawingTextColor
+            //
+            this.btnDrawingTextColor.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnDrawingTextColor.Location = new System.Drawing.Point(294, 38);
+            this.btnDrawingTextColor.Name = "btnDrawingTextColor";
+            this.btnDrawingTextColor.Size = new System.Drawing.Size(64, 27);
+            this.btnDrawingTextColor.TabIndex = 22;
+            this.btnDrawingTextColor.UseVisualStyleBackColor = false;
+            this.btnDrawingTextColor.Click += new System.EventHandler(this.btnDrawingTextColor_Click);
+            //
+            // lblDrawingTextSize
+            //
+            this.lblDrawingTextSize.AutoSize = true;
+            this.lblDrawingTextSize.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDrawingTextSize.Location = new System.Drawing.Point(390, 42);
+            this.lblDrawingTextSize.Name = "lblDrawingTextSize";
+            this.lblDrawingTextSize.Size = new System.Drawing.Size(75, 17);
+            this.lblDrawingTextSize.TabIndex = 23;
+            this.lblDrawingTextSize.Text = "Text size:";
+            //
+            // nudDrawingTextSize
+            //
+            this.nudDrawingTextSize.DecimalPlaces = 2;
+            this.nudDrawingTextSize.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
+            this.nudDrawingTextSize.Location = new System.Drawing.Point(471, 40);
+            this.nudDrawingTextSize.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
+            this.nudDrawingTextSize.Minimum = new decimal(new int[] { 3, 0, 0, 65536 });
+            this.nudDrawingTextSize.Name = "nudDrawingTextSize";
+            this.nudDrawingTextSize.Size = new System.Drawing.Size(65, 20);
+            this.nudDrawingTextSize.TabIndex = 24;
+            this.nudDrawingTextSize.Value = new decimal(new int[] { 55, 0, 0, 131072 });
+            this.nudDrawingTextSize.ValueChanged += new System.EventHandler(this.nudDrawingTextSize_ValueChanged);
+            //
             // frmSettings
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(708, 664);
+            this.Controls.Add(this.lblDrawingTextColor);
+            this.Controls.Add(this.btnDrawingTextColor);
+            this.Controls.Add(this.lblDrawingTextSize);
+            this.Controls.Add(this.nudDrawingTextSize);
             this.Controls.Add(this.btnDeleteEntireFile);
             this.Controls.Add(this.cmbFile);
             this.Controls.Add(this.panel3);
@@ -222,6 +275,7 @@
             this.Name = "frmSettings";
             this.Text = "Settings";
             ((System.ComponentModel.ISupportInitialize)(this.dgvRules)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDrawingTextSize)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
@@ -242,5 +296,10 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.ComboBox cmbFile;
         private System.Windows.Forms.Button btnDeleteEntireFile;
+        private System.Windows.Forms.Label lblDrawingTextColor;
+        private System.Windows.Forms.Button btnDrawingTextColor;
+        private System.Windows.Forms.Label lblDrawingTextSize;
+        private System.Windows.Forms.NumericUpDown nudDrawingTextSize;
+        private System.Windows.Forms.ColorDialog drawingTextColorDialog;
     }
 }

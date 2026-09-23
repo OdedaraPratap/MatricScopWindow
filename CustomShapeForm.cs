@@ -1,4 +1,4 @@
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using System;
 using System.Drawing;
@@ -624,9 +624,9 @@ namespace Matric_scope
 
         private static void DrawLiveValue(Graphics graphics, string text, PointF center, Color color)
         {
-            using (var font = new Font("Microsoft Sans Serif", 11f, FontStyle.Bold))
+            using (var font = DrawingTextSettings.CreateDrawingFont())
             using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
-            using (var foreground = new SolidBrush(color))
+            using (var foreground = DrawingTextSettings.CreateDrawingBrush())
             {
                 SizeF size = graphics.MeasureString(text, font);
                 RectangleF box = new RectangleF(center.X - size.Width / 2f - 5f,

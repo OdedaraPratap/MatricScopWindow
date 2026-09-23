@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -72,7 +72,7 @@ namespace Matric_scope
 
                 if (VerifyShapeBeforeMeasure && bestPose.Score < MinimumMatchScore)
                 {
-                    Cv2.PutText(frame, $"Shape mismatch: {bestPose.Score:F2}", new OpenCvSharp.Point(20, 35),
+                    DrawingTextSettings.PutText(frame, $"Shape mismatch: {bestPose.Score:F2}", new OpenCvSharp.Point(20, 35),
                         HersheyFonts.HersheySimplex, 0.8, Scalar.Red, 2, LineTypes.AntiAlias);
                     return $"Shape mismatch (score {bestPose.Score:F2})";
                 }
@@ -144,14 +144,14 @@ namespace Matric_scope
                 (int)Math.Round((calcL1.X + calcL2.X) / 2.0),
                 (int)Math.Round((calcL1.Y + calcL2.Y) / 2.0));
 
-            Cv2.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
+            DrawingTextSettings.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
                 HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
-            Cv2.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
+            DrawingTextSettings.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
                 HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
 
             if (fingerprint != null)
             {
-                Cv2.PutText(frame, $"Match {LastMatchScore:F2}", new OpenCvSharp.Point(20, 35),
+                DrawingTextSettings.PutText(frame, $"Match {LastMatchScore:F2}", new OpenCvSharp.Point(20, 35),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.LimeGreen, 2, LineTypes.AntiAlias);
             }
 
