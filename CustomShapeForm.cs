@@ -1,4 +1,4 @@
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using System;
 using System.Drawing;
@@ -188,6 +188,7 @@ namespace Matric_scope
             cmbTransformMode.Items.Add("Centroid Axis - force through center");
             cmbTransformMode.Items.Add("Free Offset / Stable Axis - keep placed line");
             cmbTransformMode.Items.Add("Relative Landmark - keep % position");
+            cmbTransformMode.Items.Add("Template Registration - match whole contour (TEST)");
             cmbTransformMode.SelectedIndex = 0;
 
             lblStatus = new Label
@@ -242,17 +243,24 @@ namespace Matric_scope
                 currentState = ClickState.None;
                 DetectBaseOrientation();
 
-                switch (CurrentTransformMode)
+                if (IsTemplateRegistrationMode)
                 {
-                    case ShapeTransformMode.Centroid:
-                        lblStatus.Text = "Centroid Axis: lines are forced through the detected center.";
-                        break;
-                    case ShapeTransformMode.TaperedLongestEdge:
-                        lblStatus.Text = "Free Offset/Stable Axis: keeps off-center lines and uses the whole silhouette for stable orientation.";
-                        break;
-                    case ShapeTransformMode.RelativeLandmark:
-                        lblStatus.Text = "Relative Landmark: keeps each line at the same percentage position inside fat/thin live shapes.";
-                        break;
+                    lblStatus.Text = "Template Registration: trained lines follow full-contour registration; ambiguous rotations can be rejected.";
+                }
+                else
+                {
+                    switch (CurrentTransformMode)
+                    {
+                        case ShapeTransformMode.Centroid:
+                            lblStatus.Text = "Centroid Axis: lines are forced through the detected center.";
+                            break;
+                        case ShapeTransformMode.TaperedLongestEdge:
+                            lblStatus.Text = "Free Offset/Stable Axis: keeps off-center lines and uses the whole silhouette for stable orientation.";
+                            break;
+                        case ShapeTransformMode.RelativeLandmark:
+                            lblStatus.Text = "Relative Landmark: keeps each line at the same percentage position inside fat/thin live shapes.";
+                            break;
+                    }
                 }
 
                 RedrawOverlay();
@@ -269,11 +277,22 @@ namespace Matric_scope
                 if (cmbTransformMode == null) return ShapeTransformMode.Centroid;
                 if (cmbTransformMode.SelectedIndex == 1) return ShapeTransformMode.TaperedLongestEdge;
                 if (cmbTransformMode.SelectedIndex == 2) return ShapeTransformMode.RelativeLandmark;
+                if (cmbTransformMode.SelectedIndex == 3) return (ShapeTransformMode)3; // Template Registration test mode
                 return ShapeTransformMode.Centroid;
             }
         }
 
         private bool IsCentroidMode => CurrentTransformMode == ShapeTransformMode.Centroid;
+        private bool IsTemplateRegistrationMode => Convert.ToInt32(CurrentTransformMode) == 3;
+
+        private string CurrentTransformModeDisplayName
+        {
+            get
+            {
+                if (IsTemplateRegistrationMode) return "Template Registration";
+                return CurrentTransformMode.ToString();
+            }
+        }
 
         private void DetectBaseOrientation()
         {
@@ -534,7 +553,7 @@ namespace Matric_scope
             string lengthText = lPt1.HasValue && lPt2.HasValue
                 ? $"Length {lPt1.Value.DistanceTo(lPt2.Value) * pixelToMmRatio:F2} mm"
                 : "Length --";
-            lblStatus.Text = widthText + "  |  " + lengthText + "  |  " + CurrentTransformMode;
+            lblStatus.Text = widthText + "  |  " + lengthText + "  |  " + CurrentTransformModeDisplayName;
         }
 
         private void RedrawOverlay()
@@ -624,9 +643,9 @@ namespace Matric_scope
 
         private static void DrawLiveValue(Graphics graphics, string text, PointF center, Color color)
         {
-            using (var font = new Font("Microsoft Sans Serif", 11f, FontStyle.Bold))
+            using (var font = DrawingTextSettings.CreateDrawingFont())
             using (var background = new SolidBrush(Color.FromArgb(210, Color.Black)))
-            using (var foreground = new SolidBrush(color))
+            using (var foreground = DrawingTextSettings.CreateDrawingBrush())
             {
                 SizeF size = graphics.MeasureString(text, font);
                 RectangleF box = new RectangleF(center.X - size.Width / 2f - 5f,
@@ -698,7 +717,7 @@ namespace Matric_scope
 
             MessageBox.Show(
                 $"Custom Shape '{shapeName}' trained successfully.\n\n" +
-                $"Behavior: {mode}\n" +
+                $"Behavior: {CurrentTransformModeDisplayName}\n" +
                 "One-shot contour fingerprint saved.\n" +
                 "Different aspect ratios are normalized during recognition.",
                 "Shape Saved");

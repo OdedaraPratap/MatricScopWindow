@@ -12,9 +12,11 @@ namespace Matric_scope
 
         public string MeasurePearWithOpenCvSharp1(Mat src)
         {
-            if (src == null || src.Empty()) return "No Image Data";
+            if (src == null || src.Empty())
+                return "No Image Data";
 
             double ppm = 1.0;
+
             try
             {
                 ppm = Convert.ToDouble(new ModifyRegistry().Read("ppm"));
@@ -23,96 +25,254 @@ namespace Matric_scope
             {
                 return "Calibration Error";
             }
-            if (ppm <= 0) ppm = 1.0;
+
+            if (ppm <= 0)
+                ppm = 1.0;
 
             using (Mat gray = new Mat())
             using (Mat blur = new Mat())
             using (Mat thresh = new Mat())
             {
+                // ==========================================================
+                // 1. PREPROCESS
+                // ==========================================================
+
                 Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
-                Cv2.GaussianBlur(gray, blur, new Size(3, 3), 0);
 
-                // Automatic Otsu Thresholding for Black Object on White Background
-                Cv2.Threshold(blur, thresh, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
+                Cv2.GaussianBlur(gray,blur,new Size(3, 3),0);
 
-                using (Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3)))
-                {
-                    Cv2.MorphologyEx(thresh, thresh, MorphTypes.Close, kernel);
-                    Cv2.MorphologyEx(thresh, thresh, MorphTypes.Open, kernel);
+                // Black object on white background
+                Cv2.Threshold(blur,thresh,0,255,ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
+
+                // ==========================================================
+                // IMPORTANT:
+                // Use CLOSE only.
+                // OPEN can shrink the outer boundary slightly.
+                // ==========================================================
+
+                using (Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse,new Size(3, 3))){Cv2.MorphologyEx(thresh,thresh,MorphTypes.Close,kernel);
+
+                    // DO NOT USE OPEN HERE
+                    // Cv2.MorphologyEx(thresh, thresh, MorphTypes.Open, kernel);
                 }
+
+                // ==========================================================
+                // 2. FIND CONTOUR
+                // ==========================================================
 
                 Point[][] contours;
                 HierarchyIndex[] hierarchy;
-                Cv2.FindContours(thresh, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
 
-                if (contours.Length == 0) return "No Shape Found";
+                // ApproxNone keeps the complete outside boundary
+                Cv2.FindContours(thresh,out contours,out hierarchy,RetrievalModes.External,ContourApproximationModes.ApproxNone);
 
-                var largestContour = contours.OrderByDescending(c => Cv2.ContourArea(c)).First();
+                if (contours.Length == 0)
+                    return "No Shape Found";
+
+                Point[] largestContour = contours.OrderByDescending(c => Cv2.ContourArea(c)).First();
+
                 double contourArea = Cv2.ContourArea(largestContour);
-                if (contourArea < 800) return "No Object Detected (Noise Ignored)";
+
+                if (contourArea < 800)
+                    return "No Object Detected (Noise Ignored)";
+
+                // ==========================================================
+                // 3. FULL OUTER CONVEX HULL
+                // ==========================================================
 
                 Point[] hull = Cv2.ConvexHull(largestContour);
-                double epsilon = 0.01 * Cv2.ArcLength(hull, true);
-                Point[] smoothContour = Cv2.ApproxPolyDP(hull, epsilon, true);
 
-                // FIX: Calculate the bounding box using the smoothed contour (green line) to perfectly match the visual borders
-                RotatedRect minRect = Cv2.MinAreaRect(smoothContour);
+                if (hull == null || hull.Length < 3)
+                    return "Invalid Shape";
 
-                double boxLengthPx = Math.Max(minRect.Size.Width, minRect.Size.Height);
-                double boxWidthPx = Math.Min(minRect.Size.Width, minRect.Size.Height);
+                // ==========================================================
+                // 4. OPTIONAL SMOOTH CONTOUR
+                //
+                // This is ONLY for visualization/printing.
+                // DO NOT use it for measurement.
+                // ==========================================================
+
+                double epsilon = 0.005 * Cv2.ArcLength(hull, true);
+
+                Point[] smoothContour = Cv2.ApproxPolyDP(hull,epsilon,true);
+
+                // ==========================================================
+                // 5. IMPORTANT FIX:
+                // Measure FULL HULL, not smoothContour
+                // ==========================================================
+
+                RotatedRect minRect = Cv2.MinAreaRect(hull);
+
+                double boxLengthPx = Math.Max(minRect.Size.Width,minRect.Size.Height);
+
+                double boxWidthPx = Math.Min(minRect.Size.Width,minRect.Size.Height);
 
                 double boxLengthMM = boxLengthPx / ppm;
+
                 double boxWidthMM = boxWidthPx / ppm;
-                double ratio = boxLengthMM / boxWidthMM;
+
+                // Apply your calibration variation
+                boxLengthMM = ApplyVariation(boxLengthMM,true);
+
+                boxWidthMM = ApplyVariation(boxWidthMM,false);
+
+                // Calculate ratio AFTER variation
+                double ratio = boxWidthMM == 0 ? 0 : boxLengthMM / boxWidthMM;
+
+                // ==========================================================
+                // 6. GET BOUNDING RECTANGLE POINTS
+                // ==========================================================
 
                 Point2f[] box = minRect.Points();
-                Point[] boxPoints = box.Select(p => new Point((int)Math.Round(p.X), (int)Math.Round(p.Y))).ToArray();
 
-                // Render Order Fix: Draw box first, green contour last
-                Cv2.Polylines(src, new[] { boxPoints }, true, Scalar.Red, 1, LineTypes.AntiAlias);
-                Cv2.Polylines(src, new[] { smoothContour }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
+                Point[] boxPoints = box.Select(p => new Point((int)Math.Round(p.X),(int)Math.Round(p.Y))).ToArray();
 
-                Point center = new Point((int)minRect.Center.X, (int)minRect.Center.Y);
-                Cv2.Circle(src, center, 4, Scalar.White, -1, LineTypes.AntiAlias);
+                // ==========================================================
+                // 7. DRAW TRUE OUTER BOUNDING RECTANGLE
+                // ==========================================================
 
-                boxLengthMM = ApplyVariation(boxLengthMM, true);
-                boxWidthMM = ApplyVariation(boxWidthMM, false);
+                Cv2.Polylines(src,new[] { boxPoints },true,Scalar.Red,1,LineTypes.AntiAlias);
+
+                // ==========================================================
+                // Draw the actual FULL outside hull
+                //
+                // This gives you the same behavior as your oval function.
+                // ==========================================================
+
+                Cv2.Polylines(src,new[] { hull },true,Scalar.Lime,2,LineTypes.AntiAlias);
+
+                // ==========================================================
+                // 8. CENTER POINT
+                // ==========================================================
+
+                Point center = new Point((int)Math.Round(minRect.Center.X),(int)Math.Round(minRect.Center.Y));
+
+                Cv2.Circle(src,center,4,Scalar.White,-1,LineTypes.AntiAlias);
+
+                // ==========================================================
+                // 9. OPTIONAL LENGTH/WIDTH CENTER LINES
+                //    Same style as your Oval function
+                // ==========================================================
+
+                Point2f p0 = box[0];
+                Point2f p1 = box[1];
+                Point2f p2 = box[2];
+                Point2f p3 = box[3];
+
+                Point pt01 = new Point((int)Math.Round((p0.X + p1.X) / 2.0),(int)Math.Round((p0.Y + p1.Y) / 2.0));
+
+                Point pt12 = new Point((int)Math.Round((p1.X + p2.X) / 2.0),(int)Math.Round((p1.Y + p2.Y) / 2.0));
+
+                Point pt23 = new Point((int)Math.Round((p2.X + p3.X) / 2.0),(int)Math.Round((p2.Y + p3.Y) / 2.0));
+
+                Point pt30 =
+                    new Point(
+                        (int)Math.Round((p3.X + p0.X) / 2.0),
+                        (int)Math.Round((p3.Y + p0.Y) / 2.0)
+                    );
+
+                double dist01_23 =
+                    Math.Sqrt(
+                        Math.Pow(pt01.X - pt23.X, 2) +
+                        Math.Pow(pt01.Y - pt23.Y, 2)
+                    );
+
+                double dist12_30 =
+                    Math.Sqrt(
+                        Math.Pow(pt12.X - pt30.X, 2) +
+                        Math.Pow(pt12.Y - pt30.Y, 2)
+                    );
+
+                Point lenStart;
+                Point lenEnd;
+                Point widStart;
+                Point widEnd;
+
+                if (dist01_23 > dist12_30)
+                {
+                    lenStart = pt01;
+                    lenEnd = pt23;
+
+                    widStart = pt12;
+                    widEnd = pt30;
+                }
+                else
+                {
+                    lenStart = pt12;
+                    lenEnd = pt30;
+
+                    widStart = pt01;
+                    widEnd = pt23;
+                }
+
+                // Length line
+                Cv2.Line(
+                    src,
+                    lenStart,
+                    lenEnd,
+                    Scalar.Red,
+                    1,
+                    LineTypes.AntiAlias
+                );
+
+                // Width line
+                Cv2.Line(
+                    src,
+                    widStart,
+                    widEnd,
+                    Scalar.Yellow,
+                    1,
+                    LineTypes.AntiAlias
+                );
+
+                // ==========================================================
+                // 10. DRAW TEXT
+                // ==========================================================
 
                 Point pBoxText = new Point(15, 35);
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
+
+                DrawingTextSettings.PutText(src,$"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm",pBoxText,HersheyFonts.HersheySimplex,0.55,Scalar.Red,2,LineTypes.AntiAlias);
 
                 // ==========================================================
-                // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
+                // 11. CREATE IMAGE FOR LABEL PRINTING
                 // ==========================================================
-                using (Mat printCanvas = new Mat(src.Size(), MatType.CV_8UC3, Scalar.White))
+
+                using (Mat printCanvas =
+                    new Mat(
+                        src.Size(),
+                        MatType.CV_8UC3,
+                        Scalar.White))
                 {
-                    // Draw ONLY the shape outline in thick black
-                    Cv2.Polylines(printCanvas, new[] { smoothContour }, true, Scalar.Black, 3, LineTypes.AntiAlias);
+                    // Use full hull so printed shape also matches
+                    // the detected outer boundary.
+                    Cv2.Polylines(printCanvas,new[] { hull },true,Scalar.Black,3,LineTypes.AntiAlias);
 
-                    // Find the bounding box to crop away empty white space
-                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(smoothContour);
+                    OpenCvSharp.Rect cropRect = Cv2.BoundingRect(hull);
 
-                    // Add a 15-pixel margin around the shape
                     cropRect.Inflate(15, 15);
 
-                    // Safety check: Ensure the crop box doesn't go outside the image boundaries
-                    cropRect.Intersect(new OpenCvSharp.Rect(0, 0, printCanvas.Width, printCanvas.Height));
+                    cropRect.Intersect(new OpenCvSharp.Rect(0,0,printCanvas.Width,printCanvas.Height));
 
-                    // Crop the canvas and save it specifically for the label printer
-                    using (Mat croppedForPrint = new Mat(printCanvas, cropRect))
+                    using (Mat croppedForPrint =
+                        new Mat(printCanvas, cropRect))
                     {
                         croppedForPrint.ImWrite("ShapeForLabel.png");
                     }
                 }
 
-                src.ImWrite("Box_Shape_Result.png");
+                // ==========================================================
+                // 12. SAVE DEBUG RESULT
+                // ==========================================================
 
-                return $"Length : {boxLengthMM:F2} mm\n" +
-                       $"Width  : {boxWidthMM:F2} mm\n" +
-                       $"L/W Ratio : {ratio:F2}";
+                src.ImWrite("result.png");
+
+                return
+                    $"Length : {boxLengthMM:F2} mm\n" +
+                    $"Width  : {boxWidthMM:F2} mm\n" +
+                    $"L/W Ratio : {ratio:F2}";
             }
         }
-        
+
 
         /*public string MeasurePearWithOpenCvSharp1(Mat src)
         {
@@ -187,7 +347,7 @@ namespace Matric_scope
                 boxWidthMM = ApplyVariation(boxWidthMM, false);
 
                 Point pBoxText = new Point(15, 35);
-                Cv2.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Box L: {boxLengthMM:F2}mm | W: {boxWidthMM:F2}mm", pBoxText, HersheyFonts.HersheySimplex, 0.55, Scalar.Red, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -221,7 +381,7 @@ namespace Matric_scope
             }
         }
         */
-        
+
         public string MeasureMarkWithOpenCvSharp(Mat src)
         {
             if (src == null || src.Empty()) return "No Image Data";
@@ -321,8 +481,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -339,7 +499,7 @@ namespace Matric_scope
                     }
                 }
 
-                src.ImWrite("Marquise_Result.png");
+                src.ImWrite("result.png");
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -416,8 +576,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(bottomApexPoint.X + 15, topLobePoint.Y + 40), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthLeft.X + 20, middleY - 15), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -589,9 +749,9 @@ namespace Matric_scope
                 Point widTextPt = new Point(leftPoint.X + 15, leftPoint.Y - 15);
                 Point dipTextPt = new Point(cleft.X - 35, cleft.Y + 25);
 
-                Cv2.PutText(src, $"Total L: {lengthMM:F2}mm", lenTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"Dip: {dipDepthMM:F2}mm", dipTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Orange, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Total L: {lengthMM:F2}mm", lenTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"Dip: {dipDepthMM:F2}mm", dipTextPt, HersheyFonts.HersheySimplex, 0.55, Scalar.Orange, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // 6. CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -609,7 +769,7 @@ namespace Matric_scope
                     }
                 }
 
-                src.ImWrite("Heart_Result.png");
+                src.ImWrite("result.png");
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -726,8 +886,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -872,8 +1032,8 @@ namespace Matric_scope
                 // Draw the smooth, un-chopped rubber band hull
                 Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1017,8 +1177,8 @@ namespace Matric_scope
                 // Draw the exact raw contour (no stretching or smoothing)
                 Cv2.Polylines(src, new[] { rawContour }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(centroid.X + 25, centroid.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widthL.X + 15, widthL.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1036,7 +1196,7 @@ namespace Matric_scope
                     }
                 }
 
-                src.ImWrite("Pear_Result.png");
+                src.ImWrite("result.png");
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -1127,8 +1287,8 @@ namespace Matric_scope
 
                 Cv2.Polylines(src, new[] { hull }, true, Scalar.Lime, 2, LineTypes.AntiAlias);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", new Point(center.X + 25, center.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", new Point(widStart.X + 15, widStart.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", new Point(center.X + 25, center.Y - 20), HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", new Point(widStart.X + 15, widStart.Y + 25), HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1146,7 +1306,7 @@ namespace Matric_scope
                     }
                 }
 
-                src.ImWrite("ovel_Result.png");
+                src.ImWrite("result.png");
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +
@@ -1253,8 +1413,8 @@ namespace Matric_scope
                 lengthMM = ApplyVariation(lengthMM, true);
                 widthMM = ApplyVariation(widthMM, false);
 
-                Cv2.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
-                Cv2.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"L: {lengthMM:F2}mm", lengthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Cyan, 2, LineTypes.AntiAlias);
+                DrawingTextSettings.PutText(src, $"W: {widthMM:F2}mm", widthMidPoint, HersheyFonts.HersheySimplex, 0.55, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                 // ==========================================================
                 // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -1271,7 +1431,7 @@ namespace Matric_scope
                     }
                 }
 
-                src.ImWrite("Marquise_Result.png");
+                src.ImWrite("result.png");
 
                 return $"Length : {lengthMM:F2} mm\n" +
                        $"Width  : {widthMM:F2} mm\n" +

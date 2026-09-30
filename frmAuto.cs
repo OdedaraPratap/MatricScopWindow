@@ -1,26 +1,27 @@
-﻿using uEye;
-using System;
-using System.IO;
-using System.Linq;
+﻿using MvCamCtrl.NET;
 using OpenCvSharp;
-using System.Data;
-using uEye.Defines;
-using System.Drawing;
-using System.Xml.Linq;
-using System.IO.Ports;
-using System.Text.Json;
-using System.Threading;
-using System.Diagnostics;
-using System.Data.SQLite;
-using System.Windows.Forms;
-using System.Reflection.Emit;
-using System.Drawing.Imaging;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using MvCamCtrl.NET;
-using OpenCvSharp.ML;
 using OpenCvSharp.Extensions;
+using OpenCvSharp.ML;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
+using System.IO.Ports;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
+using System.Xml.Linq;
+using uEye;
+using uEye.Defines;
 
 namespace Matric_scope
 {
@@ -31,6 +32,16 @@ namespace Matric_scope
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
+
+        private Panel polygonSidePanel;
+        private TableLayoutPanel polygonSideTable;
+
+        private readonly List<System.Windows.Forms.Label> polygonSideTitleLabels = new List<System.Windows.Forms.Label>();
+
+        private readonly List<CustomLabel> polygonSideValueLabels =
+            new List<CustomLabel>();
+
+        private int lastPolygonSideCount = -1;
 
         public const int WM_NCLBUTTONDOWN = 0xA1, HT_CAPTION = 0x2;
         private bool isInitializing = true;
@@ -81,6 +92,330 @@ namespace Matric_scope
         string targetedDevice;
         private Camera_Setting1 camsetInstance = null;
         private FrmCalib calibforminstance = null;
+
+        private void InitializePolygonSidePanel()
+        {
+            if (polygonSidePanel != null)
+                return;
+
+            // Main panel that replaces Length / Width / Ratio
+            polygonSidePanel = new Panel();
+
+            polygonSidePanel.Name = "polygonSidePanel";
+            polygonSidePanel.Location = new System.Drawing.Point(10, 15);
+
+            // panelLeftSide is 220px wide.
+            polygonSidePanel.Size = new System.Drawing.Size(
+                Math.Max(180, panelLeftSide.ClientSize.Width - 20),
+                315
+            );
+
+            polygonSidePanel.BackColor = System.Drawing.Color.White;
+            polygonSidePanel.AutoScroll = true;
+            polygonSidePanel.Visible = false;
+
+            polygonSidePanel.Anchor =
+                AnchorStyles.Top |
+                AnchorStyles.Left |
+                AnchorStyles.Right;
+
+
+            // ---------------------------------------------------------
+            // Table containing SIDE 1, SIDE 2, SIDE 3...
+            // ---------------------------------------------------------
+            polygonSideTable = new TableLayoutPanel();
+
+            polygonSideTable.Name = "polygonSideTable";
+
+            polygonSideTable.Location = new System.Drawing.Point(0, 0);
+
+            polygonSideTable.Width =
+                Math.Max(170, polygonSidePanel.ClientSize.Width - 5);
+
+            polygonSideTable.AutoSize = true;
+
+            polygonSideTable.AutoSizeMode =
+                AutoSizeMode.GrowAndShrink;
+
+            polygonSideTable.ColumnCount = 2;
+
+            polygonSideTable.RowCount = 0;
+
+            polygonSideTable.Margin =
+                new Padding(0);
+
+            polygonSideTable.Padding =
+                new Padding(0);
+
+            polygonSideTable.BackColor =
+                System.Drawing.Color.White;
+
+            // SIDE title column
+            polygonSideTable.ColumnStyles.Add(
+                new ColumnStyle(
+                    SizeType.Percent,
+                    43F
+                )
+            );
+
+            // Measurement value column
+            polygonSideTable.ColumnStyles.Add(
+                new ColumnStyle(
+                    SizeType.Percent,
+                    57F
+                )
+            );
+
+            polygonSidePanel.Controls.Add(
+                polygonSideTable
+            );
+
+            panelLeftSide.Controls.Add(
+                polygonSidePanel
+            );
+
+            polygonSidePanel.BringToFront();
+        }
+
+        private void HideStandardMeasurementControls()
+        {
+            lblLengthTitle.Visible = false;
+            lblLengthVal.Visible = false;
+
+            lblWidthTitle.Visible = false;
+            lblWidthVal.Visible = false;
+
+            lblRatioTitle.Visible = false;
+            lblRatioVal.Visible = false;
+        }
+
+        private void HidePolygonSidePanel()
+        {
+            if (polygonSidePanel != null)
+                polygonSidePanel.Visible = false;
+
+            ShowStandardMeasurementControls();
+        }
+
+        private void ShowPolygonSides(List<double> sides)
+        {
+            if (sides == null || sides.Count < 3)
+                return;
+
+            InitializePolygonSidePanel();
+
+            // Hide normal Length / Width / Ratio
+            HideStandardMeasurementControls();
+
+            polygonSidePanel.Visible = true;
+            polygonSidePanel.BringToFront();
+
+
+            // =========================================================
+            // RECREATE CONTROLS ONLY IF NUMBER OF SIDES CHANGED
+            // =========================================================
+            if (lastPolygonSideCount != sides.Count)
+            {
+                polygonSideTable.SuspendLayout();
+
+
+                // Properly dispose previous dynamic controls
+                for (int i = polygonSideTable.Controls.Count - 1;
+                     i >= 0;
+                     i--)
+                {
+                    Control ctrl =
+                        polygonSideTable.Controls[i];
+
+                    polygonSideTable.Controls.RemoveAt(i);
+
+                    ctrl.Dispose();
+                }
+
+
+                polygonSideTable.RowStyles.Clear();
+
+                polygonSideTitleLabels.Clear();
+                polygonSideValueLabels.Clear();
+
+                polygonSideTable.RowCount =
+                    sides.Count;
+
+
+                for (int i = 0; i < sides.Count; i++)
+                {
+                    // 49px gives enough space for rounded value box.
+                    polygonSideTable.RowStyles.Add(
+                        new RowStyle(
+                            SizeType.Absolute,
+                            49F
+                        )
+                    );
+
+
+                    // =================================================
+                    // SIDE TITLE
+                    // =================================================
+                    System.Windows.Forms.Label titleLabel =
+                        new System.Windows.Forms.Label();
+
+                    titleLabel.Name =
+                        $"lblPolygonSideTitle{i + 1}";
+
+                    titleLabel.Text =
+                        $"SIDE {i + 1}";
+
+                    titleLabel.Font =
+                        new Font(
+                            "Microsoft Sans Serif",
+                            12F,
+                            FontStyle.Bold
+                        );
+
+                    titleLabel.ForeColor =
+                        System.Drawing.Color.Black;
+
+                    titleLabel.BackColor =
+                        System.Drawing.Color.Transparent;
+
+                    titleLabel.TextAlign =
+                        ContentAlignment.MiddleLeft;
+
+                    titleLabel.Dock =
+                        DockStyle.Fill;
+
+                    titleLabel.AutoSize =
+                        false;
+
+                    titleLabel.Margin =
+                        new Padding(
+                            3,
+                            5,
+                            2,
+                            5
+                        );
+
+
+                    // =================================================
+                    // SIDE VALUE
+                    // =================================================
+                    CustomLabel valueLabel =
+                        new CustomLabel();
+
+                    valueLabel.Name =
+                        $"lblPolygonSideValue{i + 1}";
+
+                    valueLabel.Text =
+                        "0.00";
+
+                    valueLabel.Font =
+                        new Font(
+                            "Microsoft Sans Serif",
+                            20F,
+                            FontStyle.Bold
+                        );
+
+                    valueLabel.ForeColor =
+                        System.Drawing.Color.Red;
+
+                    valueLabel.BackColor =
+                        System.Drawing.Color.White;
+
+                    valueLabel.TextAlign =
+                        ContentAlignment.MiddleCenter;
+
+                    valueLabel.AutoSize =
+                        false;
+
+                    valueLabel.Dock =
+                        DockStyle.Fill;
+
+                    // Same orange border as existing measurement labels
+                    valueLabel.BorderColor =
+                        System.Drawing.Color.FromArgb(
+                            250,
+                            182,
+                            105
+                        );
+
+                    valueLabel.BorderRadius =
+                        8;
+
+                    valueLabel.BorderThickness =
+                        2;
+
+                    valueLabel.Margin =
+                        new Padding(
+                            2,
+                            3,
+                            4,
+                            3
+                        );
+
+
+                    polygonSideTable.Controls.Add(
+                        titleLabel,
+                        0,
+                        i
+                    );
+
+                    polygonSideTable.Controls.Add(
+                        valueLabel,
+                        1,
+                        i
+                    );
+
+
+                    polygonSideTitleLabels.Add(
+                        titleLabel
+                    );
+
+                    polygonSideValueLabels.Add(
+                        valueLabel
+                    );
+                }
+
+
+                polygonSideTable.ResumeLayout();
+
+                lastPolygonSideCount =
+                    sides.Count;
+            }
+
+
+            // =========================================================
+            // UPDATE VALUES ONLY
+            //
+            // This executes every live camera frame.
+            // We DON'T recreate labels every frame.
+            // =========================================================
+            for (int i = 0;
+                 i < sides.Count &&
+                 i < polygonSideValueLabels.Count;
+                 i++)
+            {
+                polygonSideTitleLabels[i].Text =
+                    $"SIDE {i + 1}";
+
+                polygonSideValueLabels[i].Text =
+                    sides[i].ToString(
+                        "F2",
+                        CultureInfo.InvariantCulture
+                    );
+            }
+        }
+
+        private void ShowStandardMeasurementControls()
+        {
+            lblLengthTitle.Visible = true;
+            lblLengthVal.Visible = true;
+
+            lblWidthTitle.Visible = true;
+            lblWidthVal.Visible = true;
+
+            lblRatioTitle.Visible = true;
+            lblRatioVal.Visible = true;
+        }
 
         private void SwitchMeasurementMode(MeasurementMode newMode)
         {
@@ -312,9 +647,9 @@ namespace Matric_scope
                 if (liveAxisPixelsPerMillimeter < 0.0) liveAxisPixelsPerMillimeter = 0.0;
             }
 
-            btnLiveCenterAxes.Text = showLiveCenterAxes
-                ? "HIDE CENTER\r\nSCALE"
-                : "SHOW CENTER\r\nSCALE";
+            //btnLiveCenterAxes.Text = showLiveCenterAxes
+            //    ? "HIDE CENTER\r\nSCALE"
+            //    : "SHOW CENTER\r\nSCALE";
             btnLiveCenterAxes.BackColor = showLiveCenterAxes
                 ? System.Drawing.Color.LightGreen
                 : System.Drawing.Color.FromArgb(250, 182, 105);
@@ -343,7 +678,7 @@ namespace Matric_scope
             });
             liveCircleDragMode = LiveCircleDragMode.None;
             activeLiveCircle = null;
-            btnLiveCircle.Text = "ADD ANOTHER CIRCLE";
+            //btnLiveCircle.Text = "ADD ANOTHER CIRCLE";
             btnLiveCircle.BackColor = System.Drawing.Color.LightGreen;
             RefreshCameraDisplay();
         }
@@ -493,8 +828,8 @@ namespace Matric_scope
                 ? string.Format("R {0:F2} mm", radiusPixels / liveAxisPixelsPerMillimeter)
                 : string.Format("R {0:F1} px", radiusPixels);
 
-            using (var font = new Font("Microsoft Sans Serif", 10f, FontStyle.Bold))
-            using (var textBrush = new SolidBrush(System.Drawing.Color.Yellow))
+            using (var font = DrawingTextSettings.CreateDrawingFont())
+            using (var textBrush = DrawingTextSettings.CreateDrawingBrush())
             using (var backgroundBrush = new SolidBrush(System.Drawing.Color.FromArgb(190, System.Drawing.Color.Black)))
             {
                 SizeF textSize = graphics.MeasureString(radiusText, font);
@@ -514,9 +849,9 @@ namespace Matric_scope
 
             using (var horizontalTickPen = new Pen(System.Drawing.Color.Lime, 1f))
             using (var verticalTickPen = new Pen(System.Drawing.Color.DeepSkyBlue, 1f))
-            using (var font = new Font("Microsoft Sans Serif", 8f, FontStyle.Bold))
-            using (var horizontalBrush = new SolidBrush(System.Drawing.Color.Lime))
-            using (var verticalBrush = new SolidBrush(System.Drawing.Color.DeepSkyBlue))
+            using (var font = DrawingTextSettings.CreateDrawingFont())
+            using (var horizontalBrush = DrawingTextSettings.CreateDrawingBrush())
+            using (var verticalBrush = DrawingTextSettings.CreateDrawingBrush())
             {
                 int maxTicks = (int)(Math.Max(frameSize.Width, frameSize.Height) / minorStepPixels) + 1;
                 for (int tick = -maxTicks; tick <= maxTicks; tick++)
@@ -550,7 +885,7 @@ namespace Matric_scope
                 }
 
                 string units = calibrated ? "CENTER SCALE (mm)" : "CENTER SCALE (px)";
-                graphics.DrawString(units, font, Brushes.Yellow, centerX + 14, centerY - 30);
+                graphics.DrawString(units, font, horizontalBrush, centerX + 14, centerY - 30);
             }
         }
 
@@ -1747,7 +2082,7 @@ namespace Matric_scope
             liveCircles.Clear();
             activeLiveCircle = null;
             liveCircleDragMode = LiveCircleDragMode.None;
-            btnLiveCircle.Text = "ADD LIVE CIRCLE";
+            //btnLiveCircle.Text = "ADD LIVE CIRCLE";
             btnLiveCircle.BackColor = System.Drawing.Color.FromArgb(250, 182, 105);
 
             UpdateMeasurementUI("Auto Measurement Stopped.");
@@ -1974,12 +2309,7 @@ namespace Matric_scope
                             $"Width: {lblWidthVal.Text} mm\n" +
                             $"Ratio: {lblRatioVal.Text}";
             }
-
             // Pass the reconstructed string to your printing engine
-            
-
-
-
             LabelPrintingEngine engine = new LabelPrintingEngine();
             engine.PrintSingleDiamond(printData, targetedDevice);
         }
@@ -2025,6 +2355,14 @@ namespace Matric_scope
                 e.Graphics.DrawString(itemText, e.Font, textBrush, e.Bounds);
             }
             e.DrawFocusRectangle();
+        }
+
+        private void btnA4_Click(object sender, EventArgs e)
+        {
+            using (var frm = new StoneReportForm("result.png",Convert.ToDouble(lblLengthVal.Text),Convert.ToDouble(lblWidthVal.Text),currentMode.ToString()))
+            {
+                frm.ShowDialog(this);
+            }
         }
 
         public void docalibold(Bitmap bmp)
@@ -2098,7 +2436,7 @@ namespace Matric_scope
                 Cv2.Circle(src, (int)targetCircle.Center.X, (int)targetCircle.Center.Y, 5, Scalar.Red, -1);
                 //src.SaveImage("round.png");
                 OpenCvSharp.Point textPosition = new OpenCvSharp.Point((int)targetCircle.Center.X + 15, (int)targetCircle.Center.Y + 5);
-                Cv2.PutText(src, $"{realSize:F2} mm",textPosition,HersheyFonts.HersheySimplex,0.6,Scalar.Yellow,2);
+                DrawingTextSettings.PutText(src, $"{realSize:F2} mm",textPosition,HersheyFonts.HersheySimplex,0.6,Scalar.Yellow,2);
                 src.ImWrite("Circle.png");
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -2170,8 +2508,8 @@ namespace Matric_scope
                         Cv2.Circle(src, centerX, centerY, 3, Scalar.Red, -1, LineTypes.AntiAlias);
 
                         // Overlay the calculated PPMs on the image for debugging
-                        Cv2.PutText(src, $"ppmX: {ppmX:F3}", new OpenCvSharp.Point(10, 30), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
-                        Cv2.PutText(src, $"ppmY: {ppmY:F3}", new OpenCvSharp.Point(10, 60), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
+                        DrawingTextSettings.PutText(src, $"ppmX: {ppmX:F3}", new OpenCvSharp.Point(10, 30), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
+                        DrawingTextSettings.PutText(src, $"ppmY: {ppmY:F3}", new OpenCvSharp.Point(10, 60), HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2);
 
                         src.ImWrite("calib_result.png");
 
@@ -2304,7 +2642,7 @@ namespace Matric_scope
                         Cv2.Circle(src, (int)Math.Round(center.X), (int)Math.Round(center.Y), 4, Scalar.Red, -1, LineTypes.AntiAlias);
 
                         OpenCvSharp.Point textPosition = new OpenCvSharp.Point((int)Math.Round(center.X) + 15, (int)Math.Round(center.Y) + 5);
-                        Cv2.PutText(src, $"{realSize:F2} mm", textPosition, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2, LineTypes.AntiAlias);
+                        DrawingTextSettings.PutText(src, $"{realSize:F2} mm", textPosition, HersheyFonts.HersheySimplex, 0.6, Scalar.Yellow, 2, LineTypes.AntiAlias);
 
                         // ==========================================================
                         // CREATE ISOLATED SHAPE IMAGE FOR LABEL PRINTING
@@ -2347,7 +2685,7 @@ namespace Matric_scope
             }
         }
 
-        public void UpdateMeasurementUI(string resultText)
+        /*public void UpdateMeasurementUI(string resultText)
         {
             if (string.IsNullOrWhiteSpace(resultText)) return;
 
@@ -2414,7 +2752,233 @@ namespace Matric_scope
                 lblRatioVal.Visible = false;
             }
         }
+        */
 
+        public void UpdateMeasurementUI(string resultText)
+        {
+            if (string.IsNullOrWhiteSpace(resultText))
+                return;
+
+
+            // =========================================================
+            // MAKE SAFE IF CALLED FROM CAMERA THREAD
+            // =========================================================
+            if (InvokeRequired)
+            {
+                BeginInvoke(
+                    new Action<string>(
+                        UpdateMeasurementUI
+                    ),
+                    resultText
+                );
+
+                return;
+            }
+
+
+            // =========================================================
+            // 1. CHECK FOR POLYGON SIDE MEASUREMENTS FIRST
+            //
+            // Expected:
+            //
+            // Side 1: 4.25 mm
+            // Side 2: 3.91 mm
+            // Side 3: 4.10 mm
+            // ...
+            // =========================================================
+            MatchCollection sideMatches =
+                Regex.Matches(
+                    resultText,
+                    @"Side\s*(\d+)\s*:\s*(-?\d+(?:\.\d+)?)\s*mm",
+                    RegexOptions.IgnoreCase
+                );
+
+
+            if (sideMatches.Count >= 3)
+            {
+                List<double> sides =
+                    new List<double>();
+
+
+                foreach (Match match in sideMatches)
+                {
+                    double value;
+
+                    if (double.TryParse(
+                        match.Groups[2].Value,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out value))
+                    {
+                        sides.Add(value);
+                    }
+                }
+
+
+                if (sides.Count >= 3)
+                {
+                    ShowPolygonSides(sides);
+
+                    return;
+                }
+            }
+
+
+            // =========================================================
+            // NOT POLYGON:
+            //
+            // Hide polygon panel and restore normal controls.
+            // =========================================================
+            HidePolygonSidePanel();
+
+
+            // =========================================================
+            // 2. ROUND / DIAMETER
+            // =========================================================
+            Match diameterMatch =
+                Regex.Match(
+                    resultText,
+                    @"Diameter\s*:?\s*(-?\d+(?:\.\d+)?)",
+                    RegexOptions.IgnoreCase
+                );
+
+
+            if (diameterMatch.Success)
+            {
+                lblLengthTitle.Visible = true;
+                lblLengthVal.Visible = true;
+
+                lblLengthTitle.Text =
+                    "DIAMETER";
+
+                lblLengthVal.Text =
+                    diameterMatch.Groups[1].Value;
+
+
+                // Round doesn't require Width or Ratio
+                lblWidthTitle.Visible = false;
+                lblWidthVal.Visible = false;
+
+                lblRatioTitle.Visible = false;
+                lblRatioVal.Visible = false;
+
+                return;
+            }
+
+
+            // =========================================================
+            // 3. STANDARD LENGTH / WIDTH
+            // =========================================================
+            Match lengthMatch =
+                Regex.Match(
+                    resultText,
+                    @"Length\s*:?\s*(-?\d+(?:\.\d+)?)",
+                    RegexOptions.IgnoreCase
+                );
+
+
+            Match widthMatch =
+                Regex.Match(
+                    resultText,
+                    @"Width\s*:?\s*(-?\d+(?:\.\d+)?)",
+                    RegexOptions.IgnoreCase
+                );
+
+
+            if (lengthMatch.Success &&
+                widthMatch.Success)
+            {
+                ShowStandardMeasurementControls();
+
+
+                lblLengthTitle.Text =
+                    "LENGTH";
+
+                lblWidthTitle.Text =
+                    "WIDTH";
+
+                lblRatioTitle.Text =
+                    "RATIO";
+
+
+                string lengthStr =
+                    lengthMatch.Groups[1].Value;
+
+                string widthStr =
+                    widthMatch.Groups[1].Value;
+
+
+                lblLengthVal.Text =
+                    lengthStr;
+
+                lblWidthVal.Text =
+                    widthStr;
+
+
+                double length;
+                double width;
+
+
+                if (double.TryParse(
+                        lengthStr,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out length)
+                    &&
+                    double.TryParse(
+                        widthStr,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out width)
+                    &&
+                    width > 0)
+                {
+                    double ratio =
+                        length / width;
+
+
+                    lblRatioVal.Text =
+                        ratio.ToString(
+                            "F2",
+                            CultureInfo.InvariantCulture
+                        );
+                }
+                else
+                {
+                    lblRatioVal.Text =
+                        "0.00";
+                }
+
+
+                return;
+            }
+
+
+            // =========================================================
+            // 4. ERROR / NO SHAPE
+            // =========================================================
+
+            // Make sure polygon panel isn't covering status.
+            if (polygonSidePanel != null)
+                polygonSidePanel.Visible = false;
+
+
+            lblLengthTitle.Visible = true;
+            lblLengthVal.Visible = true;
+
+            lblLengthTitle.Text =
+                "STATUS";
+
+            lblLengthVal.Text =
+                "--";
+
+
+            lblWidthTitle.Visible = false;
+            lblWidthVal.Visible = false;
+
+            lblRatioTitle.Visible = false;
+            lblRatioVal.Visible = false;
+        }
         private void button3_Click(object sender, EventArgs e)
         {
             this.Close();

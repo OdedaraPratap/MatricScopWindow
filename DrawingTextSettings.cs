@@ -42,6 +42,16 @@ namespace Matric_scope
             }
         }
 
+        public static Font CreateDrawingFont(FontStyle style = FontStyle.Bold)
+        {
+            return new Font("Microsoft Sans Serif", (float)(FontScale * 20.0), style);
+        }
+
+        public static SolidBrush CreateDrawingBrush()
+        {
+            return new SolidBrush(FontColor);
+        }
+
         /// <summary>
         /// Reloads the persisted style. This is called at application startup and whenever
         /// the settings dialog opens, so values saved by an earlier run are restored.
@@ -146,7 +156,7 @@ namespace Matric_scope
             double fontScale = 1;
             ModifyRegistry registry = new ModifyRegistry();
             fontColor = Color.Yellow;
-            fontScale = DefaultFontScale;
+            DrawingTextSettings.fontScale = DefaultFontScale;
 
             int argb;
             if (int.TryParse(registry.Read(ColorRegistryKey), NumberStyles.Integer,

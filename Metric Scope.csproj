@@ -185,6 +185,7 @@
       <DependentUpon>CustomShapeForm.cs</DependentUpon>
     </Compile>
     <Compile Include="DatabaseHelper.cs" />
+    <Compile Include="DrawingTextSettings.cs" />
     <Compile Include="frmAuto.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -225,6 +226,7 @@
     <Compile Include="HaspDemo.cs" />
     <Compile Include="ImageMetrology.cs" />
     <Compile Include="LabelPrintingEngine.cs" />
+    <Compile Include="MatricTheme.cs" />
     <Compile Include="MeasurePearShape.cs" />
     <Compile Include="MeasurePearShape1.cs" />
     <Compile Include="ManualMeasurementForm.cs">
@@ -239,8 +241,23 @@
     </Compile>
     <Compile Include="PasswordManager.cs" />
     <Compile Include="PolygonMeasurement.cs" />
+    <Compile Include="PrinterSelectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StonePrintSettings.cs" />
+    <Compile Include="StonePrintSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="StoneReportData.cs" />
+    <Compile Include="StoneReportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="StoneReportPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="StoneReportPrinter.cs" />
     <Compile Include="VariationForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -302,6 +319,11 @@
     <Content Include="Logo.ico" />
     <Content Include="LOGON.ico" />
     <Content Include="LOGONEW.ico" />
+    <None Include="Resources\A4 print.jpg.jpeg" />
+    <None Include="Resources\Tray print.jpg.jpeg" />
+    <None Include="Resources\Live Circle.jpg.jpeg" />
+    <None Include="Resources\Center Scale.jpg.jpeg" />
+    <None Include="Resources\Manual  Measurement.jpg.jpeg" />
     <None Include="Resources\Callibrationin.jpg" />
     <None Include="Resources\PRINT ALL.jpg" />
     <None Include="Resources\DELETE ALL.jpg" />

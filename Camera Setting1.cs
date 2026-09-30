@@ -315,5 +315,13 @@ namespace Matric_scope
 
             
         }
+
+        private void btnPrintSetting_Click(object sender, EventArgs e)
+        {
+            using (var frm = new StonePrintSettingsForm())
+            {
+                frm.ShowDialog(this);
+            }
+        }
     }
 }

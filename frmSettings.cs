@@ -92,12 +92,43 @@ namespace Matric_scope
             isInitializing = true;
 
             PopulateFileComboBox();
+            LoadDrawingTextControls();
 
             cmbFile.SelectedIndexChanged += cmbFile_SelectedIndexChanged;
 
             isInitializing = false;
 
             UpdateGridStates();
+        }
+
+        private void LoadDrawingTextControls()
+        {
+            DrawingTextSettings.LoadSavedSettings();
+            btnDrawingTextColor.BackColor = DrawingTextSettings.FontColor;
+            nudDrawingTextSize.Value = (decimal)DrawingTextSettings.FontScale;
+        }
+
+        private void SaveDrawingTextSettings()
+        {
+            if (isInitializing) return;
+
+            DrawingTextSettings.Save(btnDrawingTextColor.BackColor,
+                (double)nudDrawingTextSize.Value);
+        }
+
+        private void btnDrawingTextColor_Click(object sender, EventArgs e)
+        {
+            drawingTextColorDialog.Color = btnDrawingTextColor.BackColor;
+            if (drawingTextColorDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                btnDrawingTextColor.BackColor = drawingTextColorDialog.Color;
+                SaveDrawingTextSettings();
+            }
+        }
+
+        private void nudDrawingTextSize_ValueChanged(object sender, EventArgs e)
+        {
+            SaveDrawingTextSettings();
         }
 
         private void PopulateFileComboBox()

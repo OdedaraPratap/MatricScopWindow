@@ -24,10 +24,28 @@ namespace Matric_scope
             this.btnHm = new System.Windows.Forms.Button();
             this.btnTilt = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.btnMin = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
             this.flowLayoutPanelButtons = new System.Windows.Forms.FlowLayoutPanel();
+            this.panelRightSide = new System.Windows.Forms.Panel();
+            this.cmbRulesFile = new System.Windows.Forms.ComboBox();
+            this.lblFile = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.customShapesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.panelLeftSide = new System.Windows.Forms.Panel();
+            this.lblCurrentMode = new System.Windows.Forms.Label();
+            this.lblRatioTitle = new System.Windows.Forms.Label();
+            this.lblWidthTitle = new System.Windows.Forms.Label();
+            this.lblLengthTitle = new System.Windows.Forms.Label();
+            this.btnLiveCircle = new System.Windows.Forms.Button();
+            this.btnLiveCenterAxes = new System.Windows.Forms.Button();
+            this.btnManualMeasure = new System.Windows.Forms.Button();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.btnA4 = new System.Windows.Forms.Button();
+            this.picPreview = new System.Windows.Forms.PictureBox();
+            this.btnCaptureCustomShape = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.btnResetCounters = new System.Windows.Forms.Button();
+            this.btnBlank = new System.Windows.Forms.Button();
             this.btnCalib = new System.Windows.Forms.Button();
             this.btnRound = new System.Windows.Forms.Button();
             this.btnPear = new System.Windows.Forms.Button();
@@ -39,37 +57,20 @@ namespace Matric_scope
             this.btnGeneralC = new System.Windows.Forms.Button();
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
-            this.btnManualMeasure = new System.Windows.Forms.Button();
-            this.btnLiveCenterAxes = new System.Windows.Forms.Button();
-            this.btnLiveCircle = new System.Windows.Forms.Button();
-            this.panelRightSide = new System.Windows.Forms.Panel();
-            this.cmbRulesFile = new System.Windows.Forms.ComboBox();
-            this.picPreview = new System.Windows.Forms.PictureBox();
-            this.btnCaptureCustomShape = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.btnResetCounters = new System.Windows.Forms.Button();
-            this.lblFile = new System.Windows.Forms.Label();
-            this.btnBlank = new System.Windows.Forms.Button();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.customShapesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.panelLeftSide = new System.Windows.Forms.Panel();
-            this.lblCurrentMode = new System.Windows.Forms.Label();
-            this.lblRatioTitle = new System.Windows.Forms.Label();
-            this.lblWidthTitle = new System.Windows.Forms.Label();
-            this.lblLengthTitle = new System.Windows.Forms.Label();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.btnMin = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.lblRatioVal = new Matric_scope.CustomLabel();
             this.lblWidthVal = new Matric_scope.CustomLabel();
             this.lblLengthVal = new Matric_scope.CustomLabel();
             this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.flowLayoutPanelButtons.SuspendLayout();
             this.panelRightSide.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.panelLeftSide.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
             // 
             // label2
@@ -80,7 +81,7 @@ namespace Matric_scope
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(167, 24);
             this.label2.TabIndex = 17;
-            this.label2.Text = "Metric Scope 1.5";
+            this.label2.Text = "Metric Scope 1.6";
             // 
             // btnHm
             // 
@@ -115,44 +116,6 @@ namespace Matric_scope
             this.panel3.TabIndex = 16;
             this.panel3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel3_MouseDown);
             // 
-            // pictureBox2
-            // 
-            this.pictureBox2.Image = global::Matric_scope.Properties.Resources.Logo__2_;
-            this.pictureBox2.Location = new System.Drawing.Point(7, 0);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(35, 35);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 16;
-            this.pictureBox2.TabStop = false;
-            // 
-            // btnMin
-            // 
-            this.btnMin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnMin.BackColor = System.Drawing.Color.Transparent;
-            this.btnMin.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnMin.BackgroundImage")));
-            this.btnMin.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnMin.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnMin.Location = new System.Drawing.Point(1231, 4);
-            this.btnMin.Name = "btnMin";
-            this.btnMin.Size = new System.Drawing.Size(23, 23);
-            this.btnMin.TabIndex = 15;
-            this.btnMin.UseVisualStyleBackColor = false;
-            this.btnMin.Click += new System.EventHandler(this.btnMin_Click);
-            // 
-            // button3
-            // 
-            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.BackColor = System.Drawing.Color.Transparent;
-            this.button3.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button3.BackgroundImage")));
-            this.button3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.button3.Location = new System.Drawing.Point(1262, 4);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(23, 23);
-            this.button3.TabIndex = 14;
-            this.button3.UseVisualStyleBackColor = false;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
             // flowLayoutPanelButtons
             // 
             this.flowLayoutPanelButtons.BackColor = System.Drawing.Color.White;
@@ -175,6 +138,279 @@ namespace Matric_scope
             this.flowLayoutPanelButtons.Name = "flowLayoutPanelButtons";
             this.flowLayoutPanelButtons.Size = new System.Drawing.Size(1291, 79);
             this.flowLayoutPanelButtons.TabIndex = 2;
+            // 
+            // panelRightSide
+            // 
+            this.panelRightSide.BackColor = System.Drawing.Color.White;
+            this.panelRightSide.Controls.Add(this.btnA4);
+            this.panelRightSide.Controls.Add(this.cmbRulesFile);
+            this.panelRightSide.Controls.Add(this.picPreview);
+            this.panelRightSide.Controls.Add(this.btnCaptureCustomShape);
+            this.panelRightSide.Controls.Add(this.button2);
+            this.panelRightSide.Controls.Add(this.button1);
+            this.panelRightSide.Controls.Add(this.btnResetCounters);
+            this.panelRightSide.Controls.Add(this.lblFile);
+            this.panelRightSide.Controls.Add(this.btnBlank);
+            this.panelRightSide.Controls.Add(this.menuStrip1);
+            this.panelRightSide.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panelRightSide.Location = new System.Drawing.Point(1131, 111);
+            this.panelRightSide.Name = "panelRightSide";
+            this.panelRightSide.Size = new System.Drawing.Size(160, 950);
+            this.panelRightSide.TabIndex = 1;
+            // 
+            // cmbRulesFile
+            // 
+            this.cmbRulesFile.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.cmbRulesFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbRulesFile.FormattingEnabled = true;
+            this.cmbRulesFile.Location = new System.Drawing.Point(38, 478);
+            this.cmbRulesFile.Name = "cmbRulesFile";
+            this.cmbRulesFile.Size = new System.Drawing.Size(121, 23);
+            this.cmbRulesFile.TabIndex = 14;
+            this.cmbRulesFile.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cmbRulesFile_DrawItem);
+            this.cmbRulesFile.SelectedIndexChanged += new System.EventHandler(this.cmbRulesFile_SelectedIndexChanged);
+            // 
+            // lblFile
+            // 
+            this.lblFile.AutoSize = true;
+            this.lblFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFile.ForeColor = System.Drawing.Color.Black;
+            this.lblFile.Location = new System.Drawing.Point(2, 481);
+            this.lblFile.Name = "lblFile";
+            this.lblFile.Size = new System.Drawing.Size(35, 15);
+            this.lblFile.TabIndex = 2;
+            this.lblFile.Text = "File:";
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.customShapesMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(160, 29);
+            this.menuStrip1.TabIndex = 12;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // customShapesMenuItem
+            // 
+            this.customShapesMenuItem.Name = "customShapesMenuItem";
+            this.customShapesMenuItem.Size = new System.Drawing.Size(134, 25);
+            this.customShapesMenuItem.Text = "Custom Shapes";
+            // 
+            // panelLeftSide
+            // 
+            this.panelLeftSide.BackColor = System.Drawing.Color.White;
+            this.panelLeftSide.Controls.Add(this.btnLiveCircle);
+            this.panelLeftSide.Controls.Add(this.btnLiveCenterAxes);
+            this.panelLeftSide.Controls.Add(this.btnManualMeasure);
+            this.panelLeftSide.Controls.Add(this.lblCurrentMode);
+            this.panelLeftSide.Controls.Add(this.lblRatioVal);
+            this.panelLeftSide.Controls.Add(this.lblRatioTitle);
+            this.panelLeftSide.Controls.Add(this.lblWidthVal);
+            this.panelLeftSide.Controls.Add(this.lblWidthTitle);
+            this.panelLeftSide.Controls.Add(this.lblLengthVal);
+            this.panelLeftSide.Controls.Add(this.lblLengthTitle);
+            this.panelLeftSide.Dock = System.Windows.Forms.DockStyle.Left;
+            this.panelLeftSide.Location = new System.Drawing.Point(0, 111);
+            this.panelLeftSide.Name = "panelLeftSide";
+            this.panelLeftSide.Padding = new System.Windows.Forms.Padding(10, 20, 10, 10);
+            this.panelLeftSide.Size = new System.Drawing.Size(220, 950);
+            this.panelLeftSide.TabIndex = 3;
+            // 
+            // lblCurrentMode
+            // 
+            this.lblCurrentMode.AutoSize = true;
+            this.lblCurrentMode.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCurrentMode.ForeColor = System.Drawing.Color.Black;
+            this.lblCurrentMode.Location = new System.Drawing.Point(16, 341);
+            this.lblCurrentMode.Name = "lblCurrentMode";
+            this.lblCurrentMode.Size = new System.Drawing.Size(69, 24);
+            this.lblCurrentMode.TabIndex = 6;
+            this.lblCurrentMode.Text = "Mode:";
+            // 
+            // lblRatioTitle
+            // 
+            this.lblRatioTitle.AutoSize = true;
+            this.lblRatioTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRatioTitle.ForeColor = System.Drawing.Color.Black;
+            this.lblRatioTitle.Location = new System.Drawing.Point(30, 224);
+            this.lblRatioTitle.Name = "lblRatioTitle";
+            this.lblRatioTitle.Size = new System.Drawing.Size(72, 24);
+            this.lblRatioTitle.TabIndex = 4;
+            this.lblRatioTitle.Text = "RATIO";
+            // 
+            // lblWidthTitle
+            // 
+            this.lblWidthTitle.AutoSize = true;
+            this.lblWidthTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblWidthTitle.ForeColor = System.Drawing.Color.Black;
+            this.lblWidthTitle.Location = new System.Drawing.Point(26, 121);
+            this.lblWidthTitle.Name = "lblWidthTitle";
+            this.lblWidthTitle.Size = new System.Drawing.Size(76, 24);
+            this.lblWidthTitle.TabIndex = 2;
+            this.lblWidthTitle.Text = "WIDTH";
+            // 
+            // lblLengthTitle
+            // 
+            this.lblLengthTitle.AutoSize = true;
+            this.lblLengthTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLengthTitle.ForeColor = System.Drawing.Color.Black;
+            this.lblLengthTitle.Location = new System.Drawing.Point(26, 20);
+            this.lblLengthTitle.Name = "lblLengthTitle";
+            this.lblLengthTitle.Size = new System.Drawing.Size(93, 24);
+            this.lblLengthTitle.TabIndex = 0;
+            this.lblLengthTitle.Text = "LENGTH";
+            // 
+            // btnLiveCircle
+            // 
+            this.btnLiveCircle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLiveCircle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.btnLiveCircle.BackgroundImage = global::Matric_scope.Properties.Resources.Live_Circle_jpg;
+            this.btnLiveCircle.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnLiveCircle.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLiveCircle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLiveCircle.Location = new System.Drawing.Point(18, 532);
+            this.btnLiveCircle.Name = "btnLiveCircle";
+            this.btnLiveCircle.Size = new System.Drawing.Size(184, 58);
+            this.btnLiveCircle.TabIndex = 15;
+            this.btnLiveCircle.UseVisualStyleBackColor = false;
+            this.btnLiveCircle.Click += new System.EventHandler(this.btnLiveCircle_Click);
+            // 
+            // btnLiveCenterAxes
+            // 
+            this.btnLiveCenterAxes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLiveCenterAxes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.btnLiveCenterAxes.BackgroundImage = global::Matric_scope.Properties.Resources.Center_Scale_jpg;
+            this.btnLiveCenterAxes.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnLiveCenterAxes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLiveCenterAxes.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLiveCenterAxes.Location = new System.Drawing.Point(18, 466);
+            this.btnLiveCenterAxes.Name = "btnLiveCenterAxes";
+            this.btnLiveCenterAxes.Size = new System.Drawing.Size(184, 58);
+            this.btnLiveCenterAxes.TabIndex = 14;
+            this.btnLiveCenterAxes.UseVisualStyleBackColor = false;
+            this.btnLiveCenterAxes.Click += new System.EventHandler(this.btnLiveCenterAxes_Click);
+            // 
+            // btnManualMeasure
+            // 
+            this.btnManualMeasure.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnManualMeasure.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
+            this.btnManualMeasure.BackgroundImage = global::Matric_scope.Properties.Resources.Manual__Measurement_jpg;
+            this.btnManualMeasure.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnManualMeasure.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnManualMeasure.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnManualMeasure.Location = new System.Drawing.Point(18, 400);
+            this.btnManualMeasure.Name = "btnManualMeasure";
+            this.btnManualMeasure.Size = new System.Drawing.Size(184, 58);
+            this.btnManualMeasure.TabIndex = 13;
+            this.btnManualMeasure.UseVisualStyleBackColor = false;
+            this.btnManualMeasure.Click += new System.EventHandler(this.btnManualMeasure_Click);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
+            this.pictureBox1.Location = new System.Drawing.Point(224, 114);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(900, 941);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 0;
+            this.pictureBox1.TabStop = false;
+            // 
+            // btnA4
+            // 
+            this.btnA4.BackgroundImage = global::Matric_scope.Properties.Resources.A4_print_jpg;
+            this.btnA4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnA4.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnA4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnA4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnA4.Location = new System.Drawing.Point(13, 350);
+            this.btnA4.Name = "btnA4";
+            this.btnA4.Size = new System.Drawing.Size(140, 50);
+            this.btnA4.TabIndex = 15;
+            this.btnA4.Click += new System.EventHandler(this.btnA4_Click);
+            // 
+            // picPreview
+            // 
+            this.picPreview.Location = new System.Drawing.Point(7, 514);
+            this.picPreview.Name = "picPreview";
+            this.picPreview.Size = new System.Drawing.Size(147, 125);
+            this.picPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picPreview.TabIndex = 13;
+            this.picPreview.TabStop = false;
+            // 
+            // btnCaptureCustomShape
+            // 
+            this.btnCaptureCustomShape.BackgroundImage = global::Matric_scope.Properties.Resources.Add_shape;
+            this.btnCaptureCustomShape.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnCaptureCustomShape.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnCaptureCustomShape.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCaptureCustomShape.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnCaptureCustomShape.Location = new System.Drawing.Point(14, 418);
+            this.btnCaptureCustomShape.Name = "btnCaptureCustomShape";
+            this.btnCaptureCustomShape.Size = new System.Drawing.Size(140, 50);
+            this.btnCaptureCustomShape.TabIndex = 11;
+            this.btnCaptureCustomShape.Click += new System.EventHandler(this.btnCaptureCustomShape_Click);
+            // 
+            // button2
+            // 
+            this.button2.BackgroundImage = global::Matric_scope.Properties.Resources.Single_Print1;
+            this.button2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.button2.Location = new System.Drawing.Point(14, 281);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(140, 50);
+            this.button2.TabIndex = 5;
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // button1
+            // 
+            this.button1.BackgroundImage = global::Matric_scope.Properties.Resources.Tray_print_jpg;
+            this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.button1.Location = new System.Drawing.Point(14, 212);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(140, 50);
+            this.button1.TabIndex = 4;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // btnResetCounters
+            // 
+            this.btnResetCounters.BackgroundImage = global::Matric_scope.Properties.Resources.Reset_Count1;
+            this.btnResetCounters.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnResetCounters.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnResetCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetCounters.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnResetCounters.Location = new System.Drawing.Point(14, 143);
+            this.btnResetCounters.Name = "btnResetCounters";
+            this.btnResetCounters.Size = new System.Drawing.Size(140, 50);
+            this.btnResetCounters.TabIndex = 3;
+            this.btnResetCounters.UseVisualStyleBackColor = true;
+            this.btnResetCounters.Click += new System.EventHandler(this.btnResetCounters_Click);
+            // 
+            // btnBlank
+            // 
+            this.btnBlank.BackgroundImage = global::Matric_scope.Properties.Resources.Backcaali;
+            this.btnBlank.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnBlank.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnBlank.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnBlank.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnBlank.Location = new System.Drawing.Point(14, 74);
+            this.btnBlank.Name = "btnBlank";
+            this.btnBlank.Size = new System.Drawing.Size(140, 50);
+            this.btnBlank.TabIndex = 1;
+            this.btnBlank.UseVisualStyleBackColor = true;
+            this.btnBlank.Click += new System.EventHandler(this.btnBlank_Click);
             // 
             // btnCalib
             // 
@@ -297,261 +533,43 @@ namespace Matric_scope
             this.btnStop.TabIndex = 7;
             this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
             // 
-            // btnManualMeasure
-            //
-            this.btnManualMeasure.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
-            this.btnManualMeasure.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnManualMeasure.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnManualMeasure.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnManualMeasure.Location = new System.Drawing.Point(18, 400);
-            this.btnManualMeasure.Name = "btnManualMeasure";
-            this.btnManualMeasure.Size = new System.Drawing.Size(184, 58);
-            this.btnManualMeasure.TabIndex = 13;
-            this.btnManualMeasure.Text = "MANUAL\r\nMEASUREMENT";
-            this.btnManualMeasure.UseVisualStyleBackColor = false;
-            this.btnManualMeasure.Click += new System.EventHandler(this.btnManualMeasure_Click);
-            //
-            // btnLiveCenterAxes
-            //
-            this.btnLiveCenterAxes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLiveCenterAxes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
-            this.btnLiveCenterAxes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLiveCenterAxes.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLiveCenterAxes.Location = new System.Drawing.Point(18, 466);
-            this.btnLiveCenterAxes.Name = "btnLiveCenterAxes";
-            this.btnLiveCenterAxes.Size = new System.Drawing.Size(184, 58);
-            this.btnLiveCenterAxes.TabIndex = 14;
-            this.btnLiveCenterAxes.Text = "SHOW CENTER\r\nSCALE";
-            this.btnLiveCenterAxes.UseVisualStyleBackColor = false;
-            this.btnLiveCenterAxes.Click += new System.EventHandler(this.btnLiveCenterAxes_Click);
-            //
-            // btnLiveCircle
-            //
-            this.btnLiveCircle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLiveCircle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
-            this.btnLiveCircle.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLiveCircle.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLiveCircle.Location = new System.Drawing.Point(18, 532);
-            this.btnLiveCircle.Name = "btnLiveCircle";
-            this.btnLiveCircle.Size = new System.Drawing.Size(184, 58);
-            this.btnLiveCircle.TabIndex = 15;
-            this.btnLiveCircle.Text = "ADD LIVE CIRCLE";
-            this.btnLiveCircle.UseVisualStyleBackColor = false;
-            this.btnLiveCircle.Click += new System.EventHandler(this.btnLiveCircle_Click);
-            //
-            // panelRightSide
+            // pictureBox2
             // 
-            this.panelRightSide.BackColor = System.Drawing.Color.White;
-            this.panelRightSide.Controls.Add(this.cmbRulesFile);
-            this.panelRightSide.Controls.Add(this.picPreview);
-            this.panelRightSide.Controls.Add(this.btnCaptureCustomShape);
-            this.panelRightSide.Controls.Add(this.button2);
-            this.panelRightSide.Controls.Add(this.button1);
-            this.panelRightSide.Controls.Add(this.btnResetCounters);
-            this.panelRightSide.Controls.Add(this.lblFile);
-            this.panelRightSide.Controls.Add(this.btnBlank);
-            this.panelRightSide.Controls.Add(this.menuStrip1);
-            this.panelRightSide.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panelRightSide.Location = new System.Drawing.Point(1131, 111);
-            this.panelRightSide.Name = "panelRightSide";
-            this.panelRightSide.Size = new System.Drawing.Size(160, 950);
-            this.panelRightSide.TabIndex = 1;
+            this.pictureBox2.Image = global::Matric_scope.Properties.Resources.Logo__2_;
+            this.pictureBox2.Location = new System.Drawing.Point(7, 0);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(35, 35);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.TabIndex = 16;
+            this.pictureBox2.TabStop = false;
             // 
-            // cmbRulesFile
+            // btnMin
             // 
-            this.cmbRulesFile.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this.cmbRulesFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cmbRulesFile.FormattingEnabled = true;
-            this.cmbRulesFile.Location = new System.Drawing.Point(38, 425);
-            this.cmbRulesFile.Name = "cmbRulesFile";
-            this.cmbRulesFile.Size = new System.Drawing.Size(121, 23);
-            this.cmbRulesFile.TabIndex = 14;
-            this.cmbRulesFile.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cmbRulesFile_DrawItem);
-            this.cmbRulesFile.SelectedIndexChanged += new System.EventHandler(this.cmbRulesFile_SelectedIndexChanged);
+            this.btnMin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMin.BackColor = System.Drawing.Color.Transparent;
+            this.btnMin.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnMin.BackgroundImage")));
+            this.btnMin.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnMin.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnMin.Location = new System.Drawing.Point(1231, 4);
+            this.btnMin.Name = "btnMin";
+            this.btnMin.Size = new System.Drawing.Size(23, 23);
+            this.btnMin.TabIndex = 15;
+            this.btnMin.UseVisualStyleBackColor = false;
+            this.btnMin.Click += new System.EventHandler(this.btnMin_Click);
             // 
-            // picPreview
+            // button3
             // 
-            this.picPreview.Location = new System.Drawing.Point(7, 463);
-            this.picPreview.Name = "picPreview";
-            this.picPreview.Size = new System.Drawing.Size(147, 125);
-            this.picPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.picPreview.TabIndex = 13;
-            this.picPreview.TabStop = false;
-            // 
-            // btnCaptureCustomShape
-            // 
-            this.btnCaptureCustomShape.BackgroundImage = global::Matric_scope.Properties.Resources.Add_shape;
-            this.btnCaptureCustomShape.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnCaptureCustomShape.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnCaptureCustomShape.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCaptureCustomShape.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.btnCaptureCustomShape.Location = new System.Drawing.Point(14, 350);
-            this.btnCaptureCustomShape.Name = "btnCaptureCustomShape";
-            this.btnCaptureCustomShape.Size = new System.Drawing.Size(140, 50);
-            this.btnCaptureCustomShape.TabIndex = 11;
-            this.btnCaptureCustomShape.Click += new System.EventHandler(this.btnCaptureCustomShape_Click);
-            // 
-            // button2
-            // 
-            this.button2.BackgroundImage = global::Matric_scope.Properties.Resources.Single_Print1;
-            this.button2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.button2.Location = new System.Drawing.Point(14, 281);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(140, 50);
-            this.button2.TabIndex = 5;
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // button1
-            // 
-            this.button1.BackgroundImage = global::Matric_scope.Properties.Resources.Print1;
-            this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.button1.Location = new System.Drawing.Point(14, 212);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(140, 50);
-            this.button1.TabIndex = 4;
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // btnResetCounters
-            // 
-            this.btnResetCounters.BackgroundImage = global::Matric_scope.Properties.Resources.Reset_Count1;
-            this.btnResetCounters.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnResetCounters.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnResetCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetCounters.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.btnResetCounters.Location = new System.Drawing.Point(14, 143);
-            this.btnResetCounters.Name = "btnResetCounters";
-            this.btnResetCounters.Size = new System.Drawing.Size(140, 50);
-            this.btnResetCounters.TabIndex = 3;
-            this.btnResetCounters.UseVisualStyleBackColor = true;
-            this.btnResetCounters.Click += new System.EventHandler(this.btnResetCounters_Click);
-            // 
-            // lblFile
-            // 
-            this.lblFile.AutoSize = true;
-            this.lblFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblFile.ForeColor = System.Drawing.Color.Black;
-            this.lblFile.Location = new System.Drawing.Point(2, 428);
-            this.lblFile.Name = "lblFile";
-            this.lblFile.Size = new System.Drawing.Size(35, 15);
-            this.lblFile.TabIndex = 2;
-            this.lblFile.Text = "File:";
-            // 
-            // btnBlank
-            // 
-            this.btnBlank.BackgroundImage = global::Matric_scope.Properties.Resources.Backcaali;
-            this.btnBlank.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btnBlank.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnBlank.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnBlank.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.btnBlank.Location = new System.Drawing.Point(14, 74);
-            this.btnBlank.Name = "btnBlank";
-            this.btnBlank.Size = new System.Drawing.Size(140, 50);
-            this.btnBlank.TabIndex = 1;
-            this.btnBlank.UseVisualStyleBackColor = true;
-            this.btnBlank.Click += new System.EventHandler(this.btnBlank_Click);
-            // 
-            // menuStrip1
-            // 
-            this.menuStrip1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(182)))), ((int)(((byte)(105)))));
-            this.menuStrip1.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.customShapesMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(160, 29);
-            this.menuStrip1.TabIndex = 12;
-            this.menuStrip1.Text = "menuStrip1";
-            // 
-            // customShapesMenuItem
-            // 
-            this.customShapesMenuItem.Name = "customShapesMenuItem";
-            this.customShapesMenuItem.Size = new System.Drawing.Size(134, 25);
-            this.customShapesMenuItem.Text = "Custom Shapes";
-            // 
-            // panelLeftSide
-            // 
-            this.panelLeftSide.BackColor = System.Drawing.Color.White;
-            this.panelLeftSide.Controls.Add(this.btnLiveCircle);
-            this.panelLeftSide.Controls.Add(this.btnLiveCenterAxes);
-            this.panelLeftSide.Controls.Add(this.btnManualMeasure);
-            this.panelLeftSide.Controls.Add(this.lblCurrentMode);
-            this.panelLeftSide.Controls.Add(this.lblRatioVal);
-            this.panelLeftSide.Controls.Add(this.lblRatioTitle);
-            this.panelLeftSide.Controls.Add(this.lblWidthVal);
-            this.panelLeftSide.Controls.Add(this.lblWidthTitle);
-            this.panelLeftSide.Controls.Add(this.lblLengthVal);
-            this.panelLeftSide.Controls.Add(this.lblLengthTitle);
-            this.panelLeftSide.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panelLeftSide.Location = new System.Drawing.Point(0, 111);
-            this.panelLeftSide.Name = "panelLeftSide";
-            this.panelLeftSide.Padding = new System.Windows.Forms.Padding(10, 20, 10, 10);
-            this.panelLeftSide.Size = new System.Drawing.Size(220, 950);
-            this.panelLeftSide.TabIndex = 3;
-            // 
-            // lblCurrentMode
-            // 
-            this.lblCurrentMode.AutoSize = true;
-            this.lblCurrentMode.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCurrentMode.ForeColor = System.Drawing.Color.Black;
-            this.lblCurrentMode.Location = new System.Drawing.Point(16, 341);
-            this.lblCurrentMode.Name = "lblCurrentMode";
-            this.lblCurrentMode.Size = new System.Drawing.Size(69, 24);
-            this.lblCurrentMode.TabIndex = 6;
-            this.lblCurrentMode.Text = "Mode:";
-            // 
-            // lblRatioTitle
-            // 
-            this.lblRatioTitle.AutoSize = true;
-            this.lblRatioTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRatioTitle.ForeColor = System.Drawing.Color.Black;
-            this.lblRatioTitle.Location = new System.Drawing.Point(30, 224);
-            this.lblRatioTitle.Name = "lblRatioTitle";
-            this.lblRatioTitle.Size = new System.Drawing.Size(72, 24);
-            this.lblRatioTitle.TabIndex = 4;
-            this.lblRatioTitle.Text = "RATIO";
-            // 
-            // lblWidthTitle
-            // 
-            this.lblWidthTitle.AutoSize = true;
-            this.lblWidthTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblWidthTitle.ForeColor = System.Drawing.Color.Black;
-            this.lblWidthTitle.Location = new System.Drawing.Point(26, 121);
-            this.lblWidthTitle.Name = "lblWidthTitle";
-            this.lblWidthTitle.Size = new System.Drawing.Size(76, 24);
-            this.lblWidthTitle.TabIndex = 2;
-            this.lblWidthTitle.Text = "WIDTH";
-            // 
-            // lblLengthTitle
-            // 
-            this.lblLengthTitle.AutoSize = true;
-            this.lblLengthTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLengthTitle.ForeColor = System.Drawing.Color.Black;
-            this.lblLengthTitle.Location = new System.Drawing.Point(26, 20);
-            this.lblLengthTitle.Name = "lblLengthTitle";
-            this.lblLengthTitle.Size = new System.Drawing.Size(93, 24);
-            this.lblLengthTitle.TabIndex = 0;
-            this.lblLengthTitle.Text = "LENGTH";
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox1.Location = new System.Drawing.Point(224, 114);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(900, 941);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
+            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button3.BackColor = System.Drawing.Color.Transparent;
+            this.button3.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button3.BackgroundImage")));
+            this.button3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.button3.Location = new System.Drawing.Point(1262, 4);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(23, 23);
+            this.button3.TabIndex = 14;
+            this.button3.UseVisualStyleBackColor = false;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // lblRatioVal
             // 
@@ -616,16 +634,16 @@ namespace Matric_scope
             this.Resize += new System.EventHandler(this.FrmAuto_Resize);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.flowLayoutPanelButtons.ResumeLayout(false);
             this.panelRightSide.ResumeLayout(false);
             this.panelRightSide.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picPreview)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.panelLeftSide.ResumeLayout(false);
             this.panelLeftSide.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picPreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -679,5 +697,6 @@ namespace Matric_scope
         public CustomLabel lblRatioVal;
         private System.Windows.Forms.ComboBox cmbRulesFile;
         public System.Windows.Forms.Label lblCurrentMode;
+        private System.Windows.Forms.Button btnA4;
     }
 }

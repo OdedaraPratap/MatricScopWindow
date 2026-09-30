@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +18,15 @@ namespace Matric_scope
         public bool VerifyShapeBeforeMeasure { get; set; } = true;
         public double LastMatchScore { get; private set; } = 1.0;
 
+        // Template Registration test settings.
+        // Mode value 3 is used deliberately so this file can be tested even if the
+        // original ShapeTransformMode enum has not yet been extended.
+        public bool RejectAmbiguousTemplatePose { get; set; } = true;
+        public double TemplateAmbiguityScoreGap { get; set; } = 0.003;
+        public double LastRegistrationAngleDegrees { get; private set; } = 0.0;
+        public double LastRegistrationSecondScore { get; private set; } = 0.0;
+        public bool LastRegistrationAmbiguous { get; private set; } = false;
+
         private sealed class ShapeFingerprint
         {
             public Point2f[] Points;
@@ -31,6 +40,11 @@ namespace Matric_scope
             public float Span1;
             public float Span2;
             public double Score;
+            public double Error;
+            public double SecondBestScore;
+            public bool IsAmbiguous;
+            public PoseResult Alternative;
+            public List<PoseResult> Alternatives;
         }
 
         private struct LocalBounds
@@ -69,12 +83,42 @@ namespace Matric_scope
             {
                 PoseResult bestPose = FindBestPose(liveContour, activeShape.TransformMode, fingerprint);
                 LastMatchScore = bestPose.Score;
+                LastRegistrationAngleDegrees = bestPose.Angle * 180.0 / Math.PI;
+                LastRegistrationSecondScore = bestPose.SecondBestScore;
+
+                bool ambiguityChangesMeasurement = false;
+                if (bestPose.IsAmbiguous && bestPose.Alternatives != null)
+                {
+                    foreach (PoseResult alt in bestPose.Alternatives)
+                    {
+                        if (alt == null) continue;
+                        if ((bestPose.Score - alt.Score) >= TemplateAmbiguityScoreGap) continue;
+                        if (alt.Score <= 0.70) continue;
+
+                        if (!TemplateAlternativeProducesSameLines(activeShape, bestPose, alt))
+                        {
+                            ambiguityChangesMeasurement = true;
+                            break;
+                        }
+                    }
+                }
+                LastRegistrationAmbiguous = ambiguityChangesMeasurement;
 
                 if (VerifyShapeBeforeMeasure && bestPose.Score < MinimumMatchScore)
                 {
-                    Cv2.PutText(frame, $"Shape mismatch: {bestPose.Score:F2}", new OpenCvSharp.Point(20, 35),
+                    DrawingTextSettings.PutText(frame, $"Shape mismatch: {bestPose.Score:F2}", new OpenCvSharp.Point(20, 35),
                         HersheyFonts.HersheySimplex, 0.8, Scalar.Red, 2, LineTypes.AntiAlias);
                     return $"Shape mismatch (score {bestPose.Score:F2})";
+                }
+
+                if (IsTemplateRegistrationMode(activeShape.TransformMode) &&
+                    RejectAmbiguousTemplatePose && ambiguityChangesMeasurement)
+                {
+                    DrawingTextSettings.PutText(frame,
+                        $"Registration ambiguous: {bestPose.Score:F2}/{bestPose.SecondBestScore:F2}",
+                        new OpenCvSharp.Point(20, 35),
+                        HersheyFonts.HersheySimplex, 0.75, Scalar.Red, 2, LineTypes.AntiAlias);
+                    return $"Registration ambiguous (best {bestPose.Score:F2}, second {bestPose.SecondBestScore:F2})";
                 }
 
                 liveCenter = bestPose.Center;
@@ -144,18 +188,28 @@ namespace Matric_scope
                 (int)Math.Round((calcL1.X + calcL2.X) / 2.0),
                 (int)Math.Round((calcL1.Y + calcL2.Y) / 2.0));
 
-            Cv2.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
+            DrawingTextSettings.PutText(frame, $"{widthVal:F2} mm", new OpenCvSharp.Point(wMid.X + 10, wMid.Y - 10),
                 HersheyFonts.HersheySimplex, 0.7, Scalar.Red, 2, LineTypes.AntiAlias);
-            Cv2.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
+            DrawingTextSettings.PutText(frame, $"{lengthVal:F2} mm", new OpenCvSharp.Point(lMid.X + 10, lMid.Y + 20),
                 HersheyFonts.HersheySimplex, 0.7, Scalar.Blue, 2, LineTypes.AntiAlias);
 
             if (fingerprint != null)
             {
-                Cv2.PutText(frame, $"Match {LastMatchScore:F2}", new OpenCvSharp.Point(20, 35),
+                DrawingTextSettings.PutText(frame, $"Match {LastMatchScore:F2}", new OpenCvSharp.Point(20, 35),
                     HersheyFonts.HersheySimplex, 0.7, Scalar.LimeGreen, 2, LineTypes.AntiAlias);
+
+                if (IsTemplateRegistrationMode(activeShape.TransformMode))
+                {
+                    double gap = Math.Max(0.0, LastMatchScore - LastRegistrationSecondScore);
+                    Scalar regColor = LastRegistrationAmbiguous ? Scalar.Red : Scalar.LimeGreen;
+                    DrawingTextSettings.PutText(frame,
+                        $"Reg {LastRegistrationAngleDegrees:F1} deg  gap {gap:F3}",
+                        new OpenCvSharp.Point(20, 65),
+                        HersheyFonts.HersheySimplex, 0.58, regColor, 2, LineTypes.AntiAlias);
+                }
             }
 
-            frame.ImWrite("CUSTOMS.png");
+            frame.ImWrite("result.png");
             return $"Length: {lengthVal:F2} \nWidth: {widthVal:F2}";
         }
 
@@ -319,11 +373,20 @@ namespace Matric_scope
         // ================================================================
         // POSE + MATCHING
         // ================================================================
-        private static PoseResult FindBestPose(OpenCvSharp.Point[] liveContour, ShapeTransformMode mode, ShapeFingerprint fingerprint)
+        private PoseResult FindBestPose(OpenCvSharp.Point[] liveContour, ShapeTransformMode mode, ShapeFingerprint fingerprint)
+        {
+            if (IsTemplateRegistrationMode(mode))
+                return FindTemplateRegistrationPose(liveContour, fingerprint);
+
+            return FindLegacyPose(liveContour, mode, fingerprint);
+        }
+
+        // Existing behavior for the first three modes is intentionally preserved.
+        private static PoseResult FindLegacyPose(OpenCvSharp.Point[] liveContour, ShapeTransformMode mode, ShapeFingerprint fingerprint)
         {
             GetBaseTransform(liveContour, mode, out Point2f center, out double baseAngle, out _, out _);
 
-            // Keep the major/minor axes assigned consistently.  Testing +/- 90°
+            // Keep the major/minor axes assigned consistently. Testing +/- 90 degrees
             // can swap span1/span2 and make trained axes jump to a different frame.
             double[] offsets = { 0.0, Math.PI };
             PoseResult best = null;
@@ -344,12 +407,176 @@ namespace Matric_scope
                         Angle = angle,
                         Span1 = span1,
                         Span2 = span2,
-                        Score = Clamp01(score)
+                        Score = Clamp01(score),
+                        Error = rms,
+                        SecondBestScore = 0.0,
+                        IsAmbiguous = false
                     };
                 }
             }
 
             return best;
+        }
+
+        // ----------------------------------------------------------------
+        // MODE 4 - TEMPLATE REGISTRATION
+        // ----------------------------------------------------------------
+        // Instead of accepting the live PCA angle, search the complete 0..360 degree
+        // range and register the stored contour fingerprint to the live silhouette.
+        // Translation comes from the live contour centroid; independent X/Y scale comes
+        // from the live contour spans at each tested orientation.
+        private PoseResult FindTemplateRegistrationPose(OpenCvSharp.Point[] liveContour, ShapeFingerprint fingerprint)
+        {
+            Point2f center = GetContourCentroid(liveContour);
+
+            const double coarseStepDeg = 3.0;
+            var coarse = new List<PoseResult>(120);
+            for (double deg = 0.0; deg < 360.0; deg += coarseStepDeg)
+                coarse.Add(EvaluateTemplatePose(liveContour, center, fingerprint, deg * Math.PI / 180.0));
+
+            // Keep several geometrically different angle seeds. This is important for
+            // rounded-square/cushion shapes where 90/180 degree alternatives can be close.
+            var seeds = new List<PoseResult>();
+            foreach (PoseResult candidate in coarse.OrderByDescending(p => p.Score))
+            {
+                bool tooClose = seeds.Any(s => CircularAngleDistance(s.Angle, candidate.Angle) < 12.0 * Math.PI / 180.0);
+                if (tooClose) continue;
+                seeds.Add(candidate);
+                if (seeds.Count >= 8) break;
+            }
+
+            if (seeds.Count == 0)
+                seeds.Add(coarse.OrderByDescending(p => p.Score).First());
+
+            var refined = new List<PoseResult>(seeds.Count);
+            foreach (PoseResult seed in seeds)
+            {
+                PoseResult p = RefineTemplatePose(liveContour, center, fingerprint, seed.Angle,
+                    4.0, 0.50);
+                p = RefineTemplatePose(liveContour, center, fingerprint, p.Angle,
+                    0.80, 0.05);
+
+                // Final score uses every possible contour start index instead of the
+                // 64-start approximation used during the search. This makes close
+                // cushion/square orientation candidates easier to separate.
+                p = EvaluateTemplatePoseExact(liveContour, center, fingerprint, p.Angle);
+                refined.Add(p);
+            }
+
+            refined = refined.OrderByDescending(p => p.Score).ToList();
+            PoseResult best = refined[0];
+
+            List<PoseResult> alternatives = refined
+                .Skip(1)
+                .Where(p => CircularAngleDistance(p.Angle, best.Angle) >= 15.0 * Math.PI / 180.0)
+                .ToList();
+
+            PoseResult second = alternatives.FirstOrDefault();
+            double secondScore = second != null ? second.Score : 0.0;
+            best.SecondBestScore = secondScore;
+            best.Alternative = second;
+            best.Alternatives = alternatives;
+
+            // A nearly identical score at a far-away orientation means the silhouette
+            // itself may not reliably tell which way the template should face. At runtime
+            // we additionally check whether that alternate pose would actually move the
+            // trained measurement lines. Harmless 180-degree symmetry is therefore allowed.
+            best.IsAmbiguous = alternatives.Any(p =>
+                (best.Score - p.Score) < TemplateAmbiguityScoreGap && p.Score > 0.70);
+
+            return best;
+        }
+
+        private static PoseResult RefineTemplatePose(OpenCvSharp.Point[] liveContour, Point2f center,
+            ShapeFingerprint fingerprint, double seedAngle, double halfWindowDeg, double stepDeg)
+        {
+            PoseResult best = null;
+            for (double d = -halfWindowDeg; d <= halfWindowDeg + 1e-9; d += stepDeg)
+            {
+                double angle = NormalizeAngle(seedAngle + d * Math.PI / 180.0);
+                PoseResult p = EvaluateTemplatePose(liveContour, center, fingerprint, angle);
+                if (best == null || p.Score > best.Score)
+                    best = p;
+            }
+            return best;
+        }
+
+        private static PoseResult EvaluateTemplatePose(OpenCvSharp.Point[] liveContour, Point2f center,
+            ShapeFingerprint fingerprint, double angle)
+        {
+            angle = NormalizeAngle(angle);
+            ComputeSpans(liveContour, center, angle, out float span1, out float span2);
+
+            Point2f[] liveNorm = NormalizeAndResample(
+                liveContour, center, angle, span1, span2, fingerprint.Points.Length);
+
+            double contourRms = BestCyclicRms(fingerprint.Points, liveNorm);
+
+            // The normalized contour removes most size differences. Keep a small aspect-ratio
+            // term so an elongated shape does not silently flip its long and short axes.
+            double liveAspect = span2 > 1e-6f ? span1 / span2 : 1.0;
+            double refAspect = Math.Max(1e-6, fingerprint.ReferenceAspectRatio);
+            double aspectError = Math.Abs(Math.Log(Math.Max(1e-6, liveAspect / refAspect)));
+            double combinedError = contourRms + 0.04 * aspectError;
+
+            return new PoseResult
+            {
+                Center = center,
+                Angle = angle,
+                Span1 = span1,
+                Span2 = span2,
+                Error = combinedError,
+                Score = Clamp01(Math.Exp(-4.0 * combinedError)),
+                SecondBestScore = 0.0,
+                IsAmbiguous = false
+            };
+        }
+
+        private static PoseResult EvaluateTemplatePoseExact(OpenCvSharp.Point[] liveContour, Point2f center,
+            ShapeFingerprint fingerprint, double angle)
+        {
+            angle = NormalizeAngle(angle);
+            ComputeSpans(liveContour, center, angle, out float span1, out float span2);
+
+            Point2f[] liveNorm = NormalizeAndResample(
+                liveContour, center, angle, span1, span2, fingerprint.Points.Length);
+
+            double contourRms = BestCyclicRmsExact(fingerprint.Points, liveNorm);
+            double liveAspect = span2 > 1e-6f ? span1 / span2 : 1.0;
+            double refAspect = Math.Max(1e-6, fingerprint.ReferenceAspectRatio);
+            double aspectError = Math.Abs(Math.Log(Math.Max(1e-6, liveAspect / refAspect)));
+            double combinedError = contourRms + 0.04 * aspectError;
+
+            return new PoseResult
+            {
+                Center = center,
+                Angle = angle,
+                Span1 = span1,
+                Span2 = span2,
+                Error = combinedError,
+                Score = Clamp01(Math.Exp(-4.0 * combinedError)),
+                SecondBestScore = 0.0,
+                IsAmbiguous = false
+            };
+        }
+
+        private static Point2f GetContourCentroid(OpenCvSharp.Point[] contour)
+        {
+            if (contour == null || contour.Length == 0)
+                return new Point2f();
+
+            Moments mu = Cv2.Moments(contour);
+            if (Math.Abs(mu.M00) > double.Epsilon)
+                return new Point2f((float)(mu.M10 / mu.M00), (float)(mu.M01 / mu.M00));
+
+            return new Point2f((float)contour.Average(p => p.X), (float)contour.Average(p => p.Y));
+        }
+
+        private static double CircularAngleDistance(double a, double b)
+        {
+            double d = Math.Abs(NormalizeAngle(a) - NormalizeAngle(b));
+            if (d > Math.PI) d = 2.0 * Math.PI - d;
+            return d;
         }
 
         private static double BestCyclicRms(Point2f[] a, Point2f[] b)
@@ -383,6 +610,40 @@ namespace Matric_scope
             return best;
         }
 
+        private static double BestCyclicRmsExact(Point2f[] a, Point2f[] b)
+        {
+            int n = Math.Min(a.Length, b.Length);
+            if (n == 0) return double.MaxValue;
+
+            double best = double.MaxValue;
+            for (int shift = 0; shift < n; shift++)
+            {
+                double sum = 0.0;
+                double sumRev = 0.0;
+
+                for (int i = 0; i < n; i++)
+                {
+                    Point2f p = a[i];
+                    Point2f q = b[(i + shift) % n];
+                    double dx = p.X - q.X;
+                    double dy = p.Y - q.Y;
+                    sum += dx * dx + dy * dy;
+
+                    int ri = shift - i;
+                    while (ri < 0) ri += n;
+                    Point2f qr = b[ri % n];
+                    double rdx = p.X - qr.X;
+                    double rdy = p.Y - qr.Y;
+                    sumRev += rdx * rdx + rdy * rdy;
+                }
+
+                double rms = Math.Sqrt(Math.Min(sum, sumRev) / n);
+                if (rms < best) best = rms;
+            }
+
+            return best;
+        }
+
         // ================================================================
         // 3 TRANSFORM / MEASUREMENT BEHAVIOURS
         // ================================================================
@@ -401,7 +662,9 @@ namespace Matric_scope
                 return;
             }
 
-            // Centroid and RelativeLandmark use a moment/PCA-style stable major axis.
+            // Centroid, RelativeLandmark and TemplateRegistration use the same training
+            // coordinate frame. TemplateRegistration does NOT trust this PCA angle at runtime;
+            // it searches the full contour to recover the live orientation.
             GetCentroidTransform(contour, out centroid, out angle, out span1, out span2);
         }
 
@@ -666,6 +929,35 @@ namespace Matric_scope
             liveB = new Point2f((float)(liveMid.X + vx * 2.0), (float)(liveMid.Y + vy * 2.0));
         }
 
+        // If the shape has a harmless 180-degree symmetry and both trained lines land
+        // in the same physical places, do not reject the frame just because the pose itself
+        // has two equivalent solutions. This is especially useful for centered cushion lines.
+        private static bool TemplateAlternativeProducesSameLines(ShapeData shape, PoseResult best, PoseResult alternative)
+        {
+            if (shape == null || best == null || alternative == null) return false;
+
+            Point2f bw1 = ProjectToScreen(shape.WidthPt1, best.Center, best.Angle, best.Span1, best.Span2);
+            Point2f bw2 = ProjectToScreen(shape.WidthPt2, best.Center, best.Angle, best.Span1, best.Span2);
+            Point2f bl1 = ProjectToScreen(shape.LengthPt1, best.Center, best.Angle, best.Span1, best.Span2);
+            Point2f bl2 = ProjectToScreen(shape.LengthPt2, best.Center, best.Angle, best.Span1, best.Span2);
+
+            Point2f aw1 = ProjectToScreen(shape.WidthPt1, alternative.Center, alternative.Angle, alternative.Span1, alternative.Span2);
+            Point2f aw2 = ProjectToScreen(shape.WidthPt2, alternative.Center, alternative.Angle, alternative.Span1, alternative.Span2);
+            Point2f al1 = ProjectToScreen(shape.LengthPt1, alternative.Center, alternative.Angle, alternative.Span1, alternative.Span2);
+            Point2f al2 = ProjectToScreen(shape.LengthPt2, alternative.Center, alternative.Angle, alternative.Span1, alternative.Span2);
+
+            const double tolerancePixels = 3.0;
+            return UndirectedSegmentDifference(bw1, bw2, aw1, aw2) <= tolerancePixels &&
+                   UndirectedSegmentDifference(bl1, bl2, al1, al2) <= tolerancePixels;
+        }
+
+        private static double UndirectedSegmentDifference(Point2f a1, Point2f a2, Point2f b1, Point2f b2)
+        {
+            double same = (a1.DistanceTo(b1) + a2.DistanceTo(b2)) * 0.5;
+            double reversed = (a1.DistanceTo(b2) + a2.DistanceTo(b1)) * 0.5;
+            return Math.Min(same, reversed);
+        }
+
         // ================================================================
         // LOCAL MAPPING
         // ================================================================
@@ -735,8 +1027,7 @@ namespace Matric_scope
             first = SnapToEdgeStraight(midpoint, backward, contour);
         }
 
-        private static void SnapMeasurementAxes(ShapeTransformMode mode, Point2f centroid,
-            OpenCvSharp.Point[] contour, ref Point2f w1, ref Point2f w2, ref Point2f l1, ref Point2f l2)
+        private static void SnapMeasurementAxes(ShapeTransformMode mode, Point2f centroid,OpenCvSharp.Point[] contour, ref Point2f w1, ref Point2f w2, ref Point2f l1, ref Point2f l2)
         {
             if (mode == ShapeTransformMode.Centroid)
             {
@@ -750,6 +1041,14 @@ namespace Matric_scope
                 SnapLineToEdges(ref w1, ref w2, contour);
                 SnapLineToEdges(ref l1, ref l2, contour);
             }
+        }
+
+        private static bool IsTemplateRegistrationMode(ShapeTransformMode mode)
+        {
+            // Numeric mode 3 = fourth UI option. Using the numeric value keeps this test
+            // compatible with projects whose ShapeTransformMode enum currently has only
+            // the original three named values.
+            return Convert.ToInt32(mode) == 3;
         }
 
         private static double QuantizeQuarterDegree(double angle)

@@ -382,8 +382,8 @@ namespace Matric_scope
 
         private static void DrawOverlayText(Graphics graphics, string text, PointF position, Color color)
         {
-            using (var font = new Font("Microsoft Sans Serif", 11F, FontStyle.Bold))
-            using (var textBrush = new SolidBrush(color))
+            using (var font = DrawingTextSettings.CreateDrawingFont())
+            using (var textBrush = DrawingTextSettings.CreateDrawingBrush())
             using (var backgroundBrush = new SolidBrush(Color.FromArgb(205, 0, 0, 0)))
             {
                 SizeF size = graphics.MeasureString(text, font);

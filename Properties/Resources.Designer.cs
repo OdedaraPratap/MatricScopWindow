@@ -63,6 +63,16 @@ namespace Matric_scope.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap A4_print_jpg {
+            get {
+                object obj = ResourceManager.GetObject("A4 print.jpg", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ADD_FILE {
             get {
                 object obj = ResourceManager.GetObject("ADD FILE", resourceCulture);
@@ -136,6 +146,16 @@ namespace Matric_scope.Properties {
         internal static System.Drawing.Bitmap Callibrationin {
             get {
                 object obj = ResourceManager.GetObject("Callibrationin", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Center_Scale_jpg {
+            get {
+                object obj = ResourceManager.GetObject("Center Scale.jpg", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -263,6 +283,16 @@ namespace Matric_scope.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Live_Circle_jpg {
+            get {
+                object obj = ResourceManager.GetObject("Live Circle.jpg", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Logo {
             get {
                 object obj = ResourceManager.GetObject("Logo", resourceCulture);
@@ -276,6 +306,16 @@ namespace Matric_scope.Properties {
         internal static System.Drawing.Bitmap Logo__2_ {
             get {
                 object obj = ResourceManager.GetObject("Logo (2)", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Manual__Measurement_jpg {
+            get {
+                object obj = ResourceManager.GetObject("Manual  Measurement.jpg", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -456,6 +496,16 @@ namespace Matric_scope.Properties {
         internal static System.Drawing.Bitmap Stop_processed {
             get {
                 object obj = ResourceManager.GetObject("Stop_processed", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Tray_print_jpg {
+            get {
+                object obj = ResourceManager.GetObject("Tray print.jpg", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

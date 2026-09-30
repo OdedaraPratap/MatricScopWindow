@@ -49,6 +49,7 @@ namespace Matric_scope
             this.btnHistory = new System.Windows.Forms.Button();
             this.btnMesure = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnPrintSetting = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.udexposure)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownGamma)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarGamma)).BeginInit();
@@ -205,7 +206,7 @@ namespace Matric_scope
             this.panel1.Controls.Add(this.btnClose);
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(544, 32);
+            this.panel1.Size = new System.Drawing.Size(640, 32);
             this.panel1.TabIndex = 30;
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
             // 
@@ -236,7 +237,7 @@ namespace Matric_scope
             this.btnClose.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnClose.BackgroundImage")));
             this.btnClose.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnClose.Location = new System.Drawing.Point(516, 4);
+            this.btnClose.Location = new System.Drawing.Point(608, 4);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(23, 23);
             this.btnClose.TabIndex = 14;
@@ -248,7 +249,7 @@ namespace Matric_scope
             this.chkSave.AutoSize = true;
             this.chkSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkSave.ForeColor = System.Drawing.Color.Black;
-            this.chkSave.Location = new System.Drawing.Point(106, 176);
+            this.chkSave.Location = new System.Drawing.Point(7, 155);
             this.chkSave.Name = "chkSave";
             this.chkSave.Size = new System.Drawing.Size(102, 24);
             this.chkSave.TabIndex = 34;
@@ -261,7 +262,7 @@ namespace Matric_scope
             this.chkPrint.AutoSize = true;
             this.chkPrint.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkPrint.ForeColor = System.Drawing.Color.Black;
-            this.chkPrint.Location = new System.Drawing.Point(7, 176);
+            this.chkPrint.Location = new System.Drawing.Point(7, 188);
             this.chkPrint.Name = "chkPrint";
             this.chkPrint.Size = new System.Drawing.Size(98, 24);
             this.chkPrint.TabIndex = 31;
@@ -277,7 +278,7 @@ namespace Matric_scope
             this.btnHistory.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.btnHistory.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnHistory.ForeColor = System.Drawing.Color.White;
-            this.btnHistory.Location = new System.Drawing.Point(328, 170);
+            this.btnHistory.Location = new System.Drawing.Point(408, 170);
             this.btnHistory.Name = "btnHistory";
             this.btnHistory.Size = new System.Drawing.Size(108, 36);
             this.btnHistory.TabIndex = 33;
@@ -292,7 +293,7 @@ namespace Matric_scope
             this.btnMesure.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.btnMesure.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnMesure.ForeColor = System.Drawing.Color.White;
-            this.btnMesure.Location = new System.Drawing.Point(209, 169);
+            this.btnMesure.Location = new System.Drawing.Point(289, 169);
             this.btnMesure.Name = "btnMesure";
             this.btnMesure.Size = new System.Drawing.Size(109, 37);
             this.btnMesure.TabIndex = 32;
@@ -306,20 +307,36 @@ namespace Matric_scope
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(448, 163);
+            this.button1.Location = new System.Drawing.Point(528, 163);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(63, 48);
             this.button1.TabIndex = 35;
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // btnPrintSetting
+            // 
+            this.btnPrintSetting.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(186)))), ((int)(((byte)(105)))));
+            this.btnPrintSetting.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnPrintSetting.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnPrintSetting.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPrintSetting.ForeColor = System.Drawing.Color.Black;
+            this.btnPrintSetting.Location = new System.Drawing.Point(115, 169);
+            this.btnPrintSetting.Name = "btnPrintSetting";
+            this.btnPrintSetting.Size = new System.Drawing.Size(128, 37);
+            this.btnPrintSetting.TabIndex = 36;
+            this.btnPrintSetting.Text = "Print Setting";
+            this.btnPrintSetting.UseVisualStyleBackColor = false;
+            this.btnPrintSetting.Click += new System.EventHandler(this.btnPrintSetting_Click);
+            // 
             // Camera_Setting1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(544, 220);
+            this.ClientSize = new System.Drawing.Size(644, 220);
             this.ControlBox = false;
+            this.Controls.Add(this.btnPrintSetting);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.chkSave);
             this.Controls.Add(this.btnHistory);
@@ -378,5 +395,6 @@ namespace Matric_scope
         private Button btnMesure;
         private CheckBox chkPrint;
         private Button button1;
+        private Button btnPrintSetting;
     }
 }
