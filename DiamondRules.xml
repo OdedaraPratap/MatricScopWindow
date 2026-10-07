@@ -1,0 +1,47 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="Rule" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Rule">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="FileName" type="xs:string" />
+                <xs:element name="Number" type="xs:int" />
+                <xs:element name="ShapeType" type="xs:string" />
+                <xs:element name="FromLength" type="xs:double" minOccurs="0" />
+                <xs:element name="ToLength" type="xs:double" minOccurs="0" />
+                <xs:element name="FromWidth" type="xs:double" minOccurs="0" />
+                <xs:element name="ToWidth" type="xs:double" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+      <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//Rule" />
+        <xs:field xpath="FileName" />
+        <xs:field xpath="ShapeType" />
+        <xs:field xpath="Number" />
+      </xs:unique>
+    </xs:element>
+  </xs:schema>
+    <FileName>Default_Profile</FileName>
+    <Number>1</Number>
+    <ShapeType>Round</ShapeType>
+    <FromLength>1</FromLength>
+    <ToLength>2</ToLength>
+    <FromWidth>0</FromWidth>
+    <ToWidth>0</ToWidth>
+  </Rule>
+  <Rule>
+    <FileName>1</FileName>
+    <Number>1</Number>
+    <ShapeType>Round</ShapeType>
+    <FromLength>1</FromLength>
+    <ToLength>2</ToLength>
+    <FromWidth>0</FromWidth>
+    <ToWidth>0</ToWidth>
+  </Rule>
+</NewDataSet>
