@@ -2511,132 +2511,180 @@ namespace Matric_scope
                 if (string.IsNullOrEmpty(cvDisplayString) || cvDisplayString.Contains("Error") || cvDisplayString.Contains("Please Calibrate") || cvDisplayString.ToLower().Contains("object"))
                     return;
 
-                double extractedLength = 0.0;
-                double extractedWidth = 0.0;
+                double extractedLength = double.NaN;
+                double extractedWidth = double.NaN;
+                string sortingResultText = cvDisplayString ?? string.Empty;
 
-                // ==========================================
-                // 2. CENTRAL STRING DECODER ENGINE
-                // ==========================================
                 if (measuredModeForHistory == MeasurementMode.Round)
                 {
-                    // Auto results include a "Detected Shape" header, so
-                    // read the labelled value rather than a fixed word index.
-                    Match diameter = Regex.Match(cvDisplayString,
-                        @"Diameter\s*:?\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
-                    if (diameter.Success)
-                        double.TryParse(diameter.Groups[1].Value, NumberStyles.Float,
-                            CultureInfo.InvariantCulture, out extractedLength);
-                }
-                else if (measuredModeForHistory == MeasurementMode.Pentagon)
-                {
-                    Match heightMatch = Regex.Match(
-                        cvDisplayString,
-                        @"Height\s*:?\s*([0-9]+(?:\.[0-9]+)?)",
-                        RegexOptions.IgnoreCase);
-
-                    Match widthMatch = Regex.Match(
-                        cvDisplayString,
-                        @"Width\s*:?\s*([0-9]+(?:\.[0-9]+)?)",
-                        RegexOptions.IgnoreCase);
-
-                    if (heightMatch.Success)
-                        double.TryParse(
-                            heightMatch.Groups[1].Value,
-                            NumberStyles.Float,
-                            CultureInfo.InvariantCulture,
-                            out extractedLength);
-
-                    if (widthMatch.Success)
-                        double.TryParse(
-                            widthMatch.Groups[1].Value,
-                            NumberStyles.Float,
-                            CultureInfo.InvariantCulture,
-                            out extractedWidth);
-                }
-                else if (cvDisplayString.Contains("Side"))
-                {
-                    MatchCollection sideMatches = Regex.Matches(cvDisplayString, @"Side\s+\d+:\s+([0-9]+(?:\.[0-9]+)?)");
-                    double maxSide = 0.0;
-                    double minSide = double.MaxValue;
-
-                    foreach (Match match in sideMatches)
+                    Match diameterMatch = Regex.Match(sortingResultText,
+                        @"\bDiameter\s*:?\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
+                    double diameterValue;
+                    if (diameterMatch.Success && double.TryParse(diameterMatch.Groups[1].Value,
+                        NumberStyles.Float, CultureInfo.InvariantCulture, out diameterValue))
                     {
-                        if (match.Groups.Count > 1 && double.TryParse(match.Groups[1].Value, out double currentSideValue))
-                        {
-                            if (currentSideValue > maxSide) maxSide = currentSideValue;
-                            if (currentSideValue < minSide) minSide = currentSideValue;
-                        }
+                        // A round stone has equal length and width: its diameter.
+                        extractedLength = diameterValue;
+                        extractedWidth = diameterValue;
                     }
-                    extractedLength = maxSide;
-                    extractedWidth = (minSide == double.MaxValue) ? 0.0 : minSide;
                 }
                 else
                 {
-                    MatchCollection numbers = Regex.Matches(cvDisplayString, @"[0-9]+(?:\.[0-9]+)?");
-                    if (numbers.Count >= 1) double.TryParse(numbers[0].Value, out extractedLength);
-                    if (numbers.Count >= 2) double.TryParse(numbers[1].Value, out extractedWidth);
-                }
+                    string lengthPattern = measuredModeForHistory == MeasurementMode.Pentagon
+                        ? @"\bHeight\s*:?\s*([0-9]+(?:\.[0-9]+)?)"
+                        : @"\bLength\s*:?\s*([0-9]+(?:\.[0-9]+)?)";
 
-                // ==========================================
-                // 3. DATATABLE RULE MATCHING ENGINE
-                // ==========================================
-                DataRow matchedSortingRule = null;
-                string currentShapeNameString = GetHistoryShapeName(cvDisplayString, measuredModeForHistory);
+                    Match lengthMatch = Regex.Match(sortingResultText, lengthPattern, RegexOptions.IgnoreCase);
+                    Match widthMatch = Regex.Match(sortingResultText,
+                        @"\bWidth\s*:?\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
+                    double parsedValue;
 
-                if (dtRules != null)
-                {
-                    foreach (DataRow row in dtRules.Rows)
+                    if (lengthMatch.Success && double.TryParse(lengthMatch.Groups[1].Value,
+                        NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue))
+                        extractedLength = parsedValue;
+
+                    if (widthMatch.Success && double.TryParse(widthMatch.Groups[1].Value,
+                        NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue))
+                        extractedWidth = parsedValue;
+
+                    // Keep your polygon convention when overall labelled dimensions are absent:
+                    // longest side = length, shortest side = width.
+                    // Pentagon always requires its labelled Height / Width.
+                    if (measuredModeForHistory != MeasurementMode.Pentagon &&
+                        (double.IsNaN(extractedLength) || double.IsNaN(extractedWidth)))
                     {
-                        double fromLen = Convert.ToDouble(row["FromLength"]);
-                        double toLen = Convert.ToDouble(row["ToLength"]);
-                        double fromWid = Convert.ToDouble(row["FromWidth"]);
-                        double toWid = Convert.ToDouble(row["ToWidth"]);
+                        MatchCollection sideMatches = Regex.Matches(sortingResultText,
+                            @"\bSide\s+\d+\s*:\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
 
-                        if (measuredModeForHistory == MeasurementMode.Round)
+                        double maxSide = double.MinValue;
+                        double minSide = double.MaxValue;
+                        foreach (Match sideMatch in sideMatches)
                         {
-                            // Round shape: Consider FromLength and ToLength only
-                            if (extractedLength >= fromLen && extractedLength <= toLen)
+                            double sideValue;
+                            if (double.TryParse(sideMatch.Groups[1].Value, NumberStyles.Float,
+                                CultureInfo.InvariantCulture, out sideValue) && sideValue > 0)
                             {
-                                matchedSortingRule = row;
-                                break;
+                                maxSide = Math.Max(maxSide, sideValue);
+                                minSide = Math.Min(minSide, sideValue);
                             }
                         }
-                        else
+
+                        if (minSide != double.MaxValue)
                         {
-                            // All other shapes: Consider all 4 parameters (Length + Width ranges)
-                            if (extractedLength >= fromLen && extractedLength <= toLen && extractedWidth >= fromWid && extractedWidth <= toWid)
-                            {
-                                matchedSortingRule = row;
-                                break;
-                            }
+                            if (double.IsNaN(extractedLength)) extractedLength = maxSide;
+                            if (double.IsNaN(extractedWidth)) extractedWidth = minSide;
+                        }
+                        else if (!lengthMatch.Success && !widthMatch.Success && sideMatches.Count == 0)
+                        {
+                            // Compatibility with older plain "length width" measurement results.
+                            string plainResult = Regex.Replace(sortingResultText,
+                                @"^\s*Detected\s+Shape\s*:.*$", string.Empty,
+                                RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                            MatchCollection numbers = Regex.Matches(plainResult, @"[0-9]+(?:\.[0-9]+)?");
+                            if (numbers.Count >= 1 && double.TryParse(numbers[0].Value,
+                                NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue))
+                                extractedLength = parsedValue;
+                            if (numbers.Count >= 2 && double.TryParse(numbers[1].Value,
+                                NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue))
+                                extractedWidth = parsedValue;
                         }
                     }
                 }
 
-                // ==========================================
-                // 4. HARDWARE SERIAL TRIGGER
-                // ==========================================
+                // Read the selection for the SAME profile whose rules are being matched.
+                // Fail closed if the active profile cannot be read.
+                string activeSortingProfile = "Default_Profile";
+                bool canReadSortingProfile = true;
+                try
+                {
+                    object savedSortingProfile = new ModifyRegistry().Read("cmbFile");
+                    if (savedSortingProfile != null && !string.IsNullOrWhiteSpace(savedSortingProfile.ToString()))
+                        activeSortingProfile = savedSortingProfile.ToString();
+                }
+                catch
+                {
+                    canReadSortingProfile = false;
+                }
+
+                bool useLengthForSorting, useWidthForSorting;
+                frmSettings.GetSortingDimensions(activeSortingProfile,
+                    out useLengthForSorting, out useWidthForSorting);
+
+                DataRow matchedSortingRule = null;
+                string currentShapeNameString = GetHistoryShapeName(cvDisplayString, measuredModeForHistory);
+
+                bool validSortingMeasurement = canReadSortingProfile &&
+                    (useLengthForSorting || useWidthForSorting) &&
+                    (!useLengthForSorting || (!double.IsNaN(extractedLength) &&
+                        !double.IsInfinity(extractedLength) && extractedLength > 0)) &&
+                    (!useWidthForSorting || (!double.IsNaN(extractedWidth) &&
+                        !double.IsInfinity(extractedWidth) && extractedWidth > 0));
+
+                if (dtRules != null && validSortingMeasurement)
+                {
+                    foreach (DataRow row in dtRules.Rows)
+                    {
+                        if (row.RowState == DataRowState.Deleted || row.RowState == DataRowState.Detached)
+                            continue;
+
+                        // Also works when dtRules contains all profiles rather than just the active one.
+                        if (dtRules.Columns.Contains("FileName") &&
+                            !string.Equals(Convert.ToString(row["FileName"]),
+                                activeSortingProfile, StringComparison.Ordinal))
+                            continue;
+
+                        bool lengthMatches = !useLengthForSorting;
+                        bool widthMatches = !useWidthForSorting;
+                        try
+                        {
+                            if (useLengthForSorting)
+                            {
+                                double fromLen = Convert.ToDouble(row["FromLength"], CultureInfo.InvariantCulture);
+                                double toLen = Convert.ToDouble(row["ToLength"], CultureInfo.InvariantCulture);
+                                lengthMatches = fromLen >= 0 && toLen > 0 && fromLen <= toLen &&
+                                    !double.IsInfinity(fromLen) && !double.IsInfinity(toLen) &&
+                                    extractedLength >= fromLen && extractedLength <= toLen;
+                            }
+                            if (useWidthForSorting)
+                            {
+                                double fromWid = Convert.ToDouble(row["FromWidth"], CultureInfo.InvariantCulture);
+                                double toWid = Convert.ToDouble(row["ToWidth"], CultureInfo.InvariantCulture);
+                                widthMatches = fromWid >= 0 && toWid > 0 && fromWid <= toWid &&
+                                    !double.IsInfinity(fromWid) && !double.IsInfinity(toWid) &&
+                                    extractedWidth >= fromWid && extractedWidth <= toWid;
+                            }
+
+                            int ruleNumber = Convert.ToInt32(row["Number"], CultureInfo.InvariantCulture);
+                            if (lengthMatches && widthMatches && ruleNumber >= 1 && ruleNumber <= 40)
+                            {
+                                matchedSortingRule = row;
+                                break;
+                            }
+                        }
+                        catch (FormatException) { continue; }
+                        catch (InvalidCastException) { continue; }
+                        catch (OverflowException) { continue; }
+                    }
+                }
+
                 if (matchedSortingRule != null)
                 {
                     int targetSquareNumber = Convert.ToInt32(matchedSortingRule["Number"]);
 
-                    // --- INCREMENT COUNTER ---
                     lock (counterLock)
                     {
                         if (lightBlinkCounters.ContainsKey(targetSquareNumber))
-                        {
                             lightBlinkCounters[targetSquareNumber]++;
-                        }
                         else
-                        {
                             lightBlinkCounters[targetSquareNumber] = 1;
-                        }
+
                         SaveCountersToFile();
                     }
 
                     if (isSerialConnected && arduinoPort != null && arduinoPort.IsOpen)
                     {
-                        arduinoPort.WriteLine(targetSquareNumber.ToString() + "\n");
+                        // WriteLine already appends the configured NewLine terminator.
+                        arduinoPort.WriteLine(targetSquareNumber.ToString(CultureInfo.InvariantCulture));
                     }
                 }
 

@@ -323,7 +323,6 @@
     <Content Include="LOGONEW.ico" />
     <None Include="Resources\LW_Selected.jpg" />
     <None Include="Resources\CLW_Selected.jpg" />
-    <None Include="Resources\LW_Selected.png" />
     <None Include="Resources\LW.png" />
     <None Include="Resources\CLW_Selected.png" />
     <None Include="Resources\CLW.png" />
@@ -350,9 +349,6 @@
     <None Include="Resources\GENERALC_selected.jpeg" />
     <None Include="Resources\GENERALC.png" />
     <None Include="Resources\Backcali.jpeg" />
-    <None Include="Resources\Single Print.jpeg" />
-    <None Include="Resources\Print.jpeg" />
-    <None Include="Resources\Reset Count.jpeg" />
     <None Include="Resources\GENERAL.png" />
     <None Include="Resources\GENERAL_Selected.jpeg" />
     <None Include="Resources\Logo %282%29.png" />

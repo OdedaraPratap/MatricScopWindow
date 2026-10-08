@@ -47,6 +47,9 @@
             this.lblDrawingTextSize = new System.Windows.Forms.Label();
             this.nudDrawingTextSize = new System.Windows.Forms.NumericUpDown();
             this.drawingTextColorDialog = new System.Windows.Forms.ColorDialog();
+            this.chkSortLength = new System.Windows.Forms.CheckBox();
+            this.chkSortWidth = new System.Windows.Forms.CheckBox();
+            this.lblSortDimensions = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRules)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudDrawingTextSize)).BeginInit();
             this.panel3.SuspendLayout();
@@ -253,12 +256,46 @@
             this.nudDrawingTextSize.Value = new decimal(new int[] { 55, 0, 0, 131072 });
             this.nudDrawingTextSize.ValueChanged += new System.EventHandler(this.nudDrawingTextSize_ValueChanged);
             //
+            // lblSortDimensions
+            //
+            this.lblSortDimensions.AutoSize = true;
+            this.lblSortDimensions.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.lblSortDimensions.Location = new System.Drawing.Point(35, 78);
+            this.lblSortDimensions.Name = "lblSortDimensions";
+            this.lblSortDimensions.TabIndex = 25;
+            this.lblSortDimensions.Text = "Sort / LED by:";
+            //
+            // chkSortLength
+            //
+            this.chkSortLength.AutoSize = true;
+            this.chkSortLength.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.chkSortLength.Location = new System.Drawing.Point(175, 75);
+            this.chkSortLength.Name = "chkSortLength";
+            this.chkSortLength.TabIndex = 26;
+            this.chkSortLength.Text = "Length";
+            this.chkSortLength.UseVisualStyleBackColor = true;
+            this.chkSortLength.CheckedChanged += new System.EventHandler(this.sortingDimension_CheckedChanged);
+            //
+            // chkSortWidth
+            //
+            this.chkSortWidth.AutoSize = true;
+            this.chkSortWidth.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.chkSortWidth.Location = new System.Drawing.Point(285, 75);
+            this.chkSortWidth.Name = "chkSortWidth";
+            this.chkSortWidth.TabIndex = 27;
+            this.chkSortWidth.Text = "Width";
+            this.chkSortWidth.UseVisualStyleBackColor = true;
+            this.chkSortWidth.CheckedChanged += new System.EventHandler(this.sortingDimension_CheckedChanged);
+            //
             // frmSettings
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(708, 664);
+            this.Controls.Add(this.lblSortDimensions);
+            this.Controls.Add(this.chkSortLength);
+            this.Controls.Add(this.chkSortWidth);
             this.Controls.Add(this.lblDrawingTextColor);
             this.Controls.Add(this.btnDrawingTextColor);
             this.Controls.Add(this.lblDrawingTextSize);
@@ -280,6 +317,7 @@
             this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -301,5 +339,8 @@
         private System.Windows.Forms.Label lblDrawingTextSize;
         private System.Windows.Forms.NumericUpDown nudDrawingTextSize;
         private System.Windows.Forms.ColorDialog drawingTextColorDialog;
+        private System.Windows.Forms.CheckBox chkSortLength;
+        private System.Windows.Forms.CheckBox chkSortWidth;
+        private System.Windows.Forms.Label lblSortDimensions;
     }
 }

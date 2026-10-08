@@ -29,6 +29,98 @@ namespace Matric_scope
         
         private bool isInitializing = true;
         private bool isSavingChanges = false;
+        private bool isLoadingSortingDimensions = false;
+        private string loadedSortingProfile = null;
+
+        // Separate registry value for every file profile. Existing rules XML is unchanged.
+        private static string GetSortingDimensionsKey(string profileName)
+        {
+            return "TraySortDimensions_" + Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(profileName ?? string.Empty));
+        }
+
+        public static void GetSortingDimensions(string profileName,
+            out bool useLength, out bool useWidth)
+        {
+            useLength = true;
+            useWidth = true;
+            try
+            {
+                object saved = new ModifyRegistry().Read(GetSortingDimensionsKey(profileName));
+                if (saved == null || string.IsNullOrWhiteSpace(saved.ToString())) return;
+
+                string mode = saved.ToString();
+                useLength = mode == "Length" || mode == "Both";
+                useWidth = mode == "Width" || mode == "Both";
+            }
+            catch
+            {
+                // Do not trigger hardware if an existing preference cannot be read.
+                useLength = false;
+                useWidth = false;
+            }
+        }
+
+        private void LoadSortingDimensions(string profileName)
+        {
+            isLoadingSortingDimensions = true;
+            try
+            {
+                bool useLength, useWidth;
+                GetSortingDimensions(profileName, out useLength, out useWidth);
+                chkSortLength.Checked = useLength;
+                chkSortWidth.Checked = useWidth;
+                loadedSortingProfile = profileName;
+            }
+            finally
+            {
+                isLoadingSortingDimensions = false;
+            }
+            ApplySortingColumnStates();
+        }
+
+        private void SaveSortingDimensions()
+        {
+            if (string.IsNullOrEmpty(loadedSortingProfile)) return;
+
+            string mode = chkSortLength.Checked
+                ? (chkSortWidth.Checked ? "Both" : "Length")
+                : (chkSortWidth.Checked ? "Width" : "None");
+            new ModifyRegistry().Write(GetSortingDimensionsKey(loadedSortingProfile), mode);
+        }
+
+        private void sortingDimension_CheckedChanged(object sender, EventArgs e)
+        {
+            if (isInitializing || isLoadingSortingDimensions ||
+                string.IsNullOrEmpty(loadedSortingProfile)) return;
+
+            try
+            {
+                dgvRules.EndEdit();
+                SaveSortingDimensions();
+                ApplySortingColumnStates();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to save sorting selection: {ex.Message}",
+                    "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadSortingDimensions(loadedSortingProfile);
+            }
+        }
+
+        private void ApplySortingColumnStates()
+        {
+            foreach (string columnName in new[] { "FromLength", "ToLength", "FromWidth", "ToWidth" })
+            {
+                DataGridViewColumn column = dgvRules.Columns[columnName];
+                if (column == null) continue;
+                bool enabled = columnName.EndsWith("Length")
+                    ? chkSortLength.Checked : chkSortWidth.Checked;
+                column.ReadOnly = !enabled;
+                column.DefaultCellStyle.BackColor = enabled ? System.Drawing.Color.White : System.Drawing.Color.Gainsboro;
+                column.DefaultCellStyle.ForeColor = enabled ? System.Drawing.Color.Black : System.Drawing.Color.DimGray;
+            }
+        }
         
         public frmSettings()
         {
@@ -99,6 +191,8 @@ namespace Matric_scope
             isInitializing = false;
 
             UpdateGridStates();
+            if (cmbFile.SelectedItem != null)
+                new ModifyRegistry().Write("cmbFile", cmbFile.SelectedItem.ToString());
         }
 
         private void LoadDrawingTextControls()
@@ -262,18 +356,19 @@ namespace Matric_scope
 
             string selectedFile = cmbFile.SelectedItem.ToString();
 
-            // Ensure 1 to 20 rows are automatically generated and mapped for this file
+            // Ensure 1 to 40 rows are automatically generated and mapped for this file
             EnsureTwentyRowsExist(selectedFile);
 
             dvFilteredRules.RowFilter = $"FileName = '{selectedFile.Replace("'", "''")}'";
             dvFilteredRules.Sort = "Number ASC";
+            LoadSortingDimensions(selectedFile);
 
             // Lock automated/system columns so users cannot manually type into them
             if (dgvRules.Columns["FileName"] != null) dgvRules.Columns["FileName"].ReadOnly = true;
             //if (dgvRules.Columns["ShapeType"] != null) dgvRules.Columns["ShapeType"].ReadOnly = true;
             if (dgvRules.Columns["Number"] != null) dgvRules.Columns["Number"].ReadOnly = true;
 
-            // Keep all four length and width columns visible and editable
+            // Keep all ranges visible; only selected dimensions are editable.
             if (dgvRules.Columns["FromLength"] != null) dgvRules.Columns["FromLength"].Visible = true;
             if (dgvRules.Columns["ToLength"] != null) dgvRules.Columns["ToLength"].Visible = true;
             if (dgvRules.Columns["FromWidth"] != null) dgvRules.Columns["FromWidth"].Visible = true;
@@ -299,6 +394,7 @@ namespace Matric_scope
             {
                 isSavingChanges = true;
                 dgvRules.EndEdit();
+                SaveSortingDimensions();
                 SaveToXml();
             }
             catch (Exception ex)
@@ -313,6 +409,9 @@ namespace Matric_scope
 
         private void button3_Click(object sender, EventArgs e)
         {
+            dgvRules.EndEdit();
+            SaveSortingDimensions();
+            SaveToXml();
             //if (this.Owner is FrmAuto autofrm)
             {
                 FrmAuto.RefreshActiveRules(cmbFile.Text.Trim());
@@ -396,7 +495,7 @@ namespace Matric_scope
             }
 
             DialogResult confirm = MessageBox.Show(
-                $"Are you sure you want to reset all data within the '{currentFile}' profile?\nThis will clear all 1-20 square number allocations.",
+                $"Are you sure you want to reset all data within the '{currentFile}' profile?\nThis will clear all 1-40 square number allocations.",
                 "Confirm Data Reset",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
@@ -473,11 +572,11 @@ namespace Matric_scope
 
             cmbFile.SelectedItem = newFileName;
 
-            // Automatically generate 1-20 empty rows for this new file profile
+            // Automatically generate 1-40 empty rows for this new file profile
             EnsureTwentyRowsExist(newFileName);
             UpdateGridStates();
             dgvRules.Refresh();
-            MessageBox.Show($"File profile '{newFileName}' created with 20 rows successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"File profile '{newFileName}' created with 40 rows successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnTextUpdate_Click(object sender, EventArgs e)
@@ -485,6 +584,7 @@ namespace Matric_scope
             try
             {
                 dgvRules.EndEdit();
+                SaveSortingDimensions();
                 SaveToXml();
                 UpdateGridStates();
                 dgvRules.Refresh();
